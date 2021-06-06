@@ -17,5 +17,12 @@
         "psr-4": {
             "Rutatiina\\Item\\": "src/"
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Rutatiina\\Item\\ItemServiceProvider"
+            ]
+        }
     }
 }
