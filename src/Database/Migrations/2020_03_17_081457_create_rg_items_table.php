@@ -34,13 +34,13 @@ class CreateRgItemsTable extends Migration
             $table->unsignedInteger('units')->default(1);
             $table->string('selling_currency', 3);
             $table->unsignedDecimal('selling_rate', 20, 5);
-            $table->unsignedBigInteger('selling_financial_account_code')->default(2); //Sales revenue
+            $table->unsignedBigInteger('selling_financial_account_code')->nullable()->default(2); //Sales revenue
             $table->unsignedBigInteger('selling_tax_code')->nullable();
             $table->unsignedTinyInteger('selling_tax_inclusive')->nullable();
             $table->string('selling_description')->nullable();;
             $table->string('billing_currency', 3);
             $table->unsignedDecimal('billing_rate', 20, 5);
-            $table->unsignedBigInteger('billing_financial_account_code')->default(54); //Cost of Sales
+            $table->unsignedBigInteger('billing_financial_account_code')->nullable()->default(54); //Cost of Sales
             $table->unsignedBigInteger('billing_tax_code')->nullable();
             $table->unsignedTinyInteger('billing_tax_inclusive')->nullable();
             $table->string('billing_description')->nullable();
