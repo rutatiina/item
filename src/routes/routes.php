@@ -2,7 +2,7 @@
 
 Route::group(['middleware' => ['web']], function() {
 	Route::prefix('docs/items')->group(function () {
-		Route::get('api', 'Rutatiina\Item\Http\Controllers\ApiController@index')->name('items.api.index');
+		//Route::get('api', 'Rutatiina\Item\Http\Controllers\ApiController@index')->name('items.api.index');
     });
 });
 
