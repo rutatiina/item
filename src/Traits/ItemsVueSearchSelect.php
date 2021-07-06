@@ -2,6 +2,7 @@
 
 namespace Rutatiina\Item\Traits;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Rutatiina\FinancialAccounting\Models\Account;
@@ -20,6 +21,7 @@ trait ItemsVueSearchSelect
             'id',
             DB::raw('name'),
             DB::raw("'item' as type"),
+            DB::raw('selling_currency as currency'),
             DB::raw('selling_description as description'),
             DB::raw('selling_financial_account_code as financial_account_code'),
             DB::raw('selling_rate'),
@@ -56,6 +58,7 @@ trait ItemsVueSearchSelect
             'id' => 0,
             'name' => $request->search_text,
             'type' => '',
+            'currency' => '',
             'description' => '',
             //'financial_account_code' => $item->financial_account_code,
             'rate' => 0,
@@ -78,6 +81,7 @@ trait ItemsVueSearchSelect
                         'id' => $item->id,
                         'name' => $item->name,
                         'type' => $item->type,
+                        'currency' => $item->currency,
                         'description' => $item->description,
                         //'financial_account_code' => $item->financial_account_code,
                         'rate' => $item->selling_rate,
@@ -101,6 +105,7 @@ trait ItemsVueSearchSelect
             'id',
             DB::raw('name'),
             DB::raw("'account' as type"),
+            DB::raw('billing_currency as currency'),
             DB::raw('billing_description as description'),
             DB::raw('billing_financial_account_code as financial_account_code'),
             DB::raw('billing_rate'),
@@ -118,6 +123,7 @@ trait ItemsVueSearchSelect
             DB::raw('name'),
             DB::raw("'account' as type"),
             DB::raw('type as account_type'),
+            DB::raw("'".Auth::user()->tenant->base_currency."' as currency"),
             DB::raw("'' as description"),
             DB::raw('0 as billing_rate'),
             DB::raw('\'inclusive\' as tax_method')
@@ -173,6 +179,7 @@ trait ItemsVueSearchSelect
                         'id' => $item->id,
                         'name' => $item->name,
                         'type' => $item->type,
+                        'currency' => $item->currency,
                         'description' => $item->description,
                         //'financial_account_code' => $item->financial_account_code,
                         'rate' => $item->billing_rate,
@@ -201,6 +208,7 @@ trait ItemsVueSearchSelect
             'id',
             DB::raw('name'),
             DB::raw("'item' as type"),
+            DB::raw('selling_currency as currency'),
             DB::raw('selling_description as description'),
             DB::raw('selling_financial_account_code as financial_account_code'),
             DB::raw('selling_rate as rate'),
@@ -247,6 +255,7 @@ trait ItemsVueSearchSelect
                         'id' => $item->id,
                         'name' => $item->name,
                         'type' => $item->type,
+                        'currency' => $item->currency,
                         'description' => $item->description,
                         //'financial_account_code' => $item->financial_account_code,
                         'rate' => $item->rate,
@@ -277,6 +286,7 @@ trait ItemsVueSearchSelect
             DB::raw('name'),
             DB::raw("'account' as type"),
             DB::raw('type as account_type'),
+            DB::raw("'".Auth::user()->tenant->base_currency."' as currency"),
             DB::raw("'' as description"),
             DB::raw('0 as rate'),
             DB::raw('\'inclusive\' as tax_method')
@@ -317,6 +327,7 @@ trait ItemsVueSearchSelect
                         'id' => $item->id,
                         'name' => $item->name,
                         'type' => $item->type,
+                        'currency' => $item->currency,
                         'description' => $item->description,
                         //'financial_account_code' => $item->financial_account_code,
                         'rate' => $item->rate,
