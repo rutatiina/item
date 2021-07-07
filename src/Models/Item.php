@@ -74,5 +74,10 @@ class Item extends Model
         return floatval($value);
     }
 
+    public function images()
+    {
+        return $this->hasMany('Rutatiina\Item\Models\ItemImage', 'item_id', 'id');
+    }
+
 
 }
