@@ -22,23 +22,26 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ItemController extends Controller
 {
-    use ItemsVueSearchSelect; //calls AccountingTrait
+    use ItemsVueSearchSelect;
+
+    //calls AccountingTrait
 
     private $loadViewsFrom = 'item::limitless.';
 
     public function __construct()
     {
         $this->middleware('permission:items.view');
-		$this->middleware('permission:items.create', ['only' => ['create','store']]);
-		$this->middleware('permission:items.update', ['only' => ['edit','update']]);
-		$this->middleware('permission:items.delete', ['only' => ['destroy']]);
+        $this->middleware('permission:items.create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:items.update', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:items.delete', ['only' => ['destroy']]);
     }
 
     public function index(Request $request)
     {
         $per_page = ($request->per_page) ? $request->per_page : 20;
 
-        if (!FacadesRequest::wantsJson()) {
+        if (!FacadesRequest::wantsJson())
+        {
             return view('l-limitless-bs4.layout_2-ltr-default.appVue');
         }
 
@@ -52,7 +55,8 @@ class ItemController extends Controller
     public function create()
     {
         //load the vue version of the app
-        if (!FacadesRequest::wantsJson()) {
+        if (!FacadesRequest::wantsJson())
+        {
             return view('l-limitless-bs4.layout_2-ltr-default.appVue');
         }
 
@@ -63,7 +67,7 @@ class ItemController extends Controller
         $attributes['selling_currency'] = Auth::user()->tenant->base_currency;
         $attributes['billing_currency'] = Auth::user()->tenant->base_currency;
         $attributes['image'] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
-        $attributes['images'] = (object) [
+        $attributes['images'] = (object)[
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
@@ -88,11 +92,12 @@ class ItemController extends Controller
             'selectedBillingAccount' => json_decode('{}'),
         ];
 
-        if (FacadesRequest::wantsJson()) {
+        if (FacadesRequest::wantsJson())
+        {
             return $data;
         }
 
-        return view($this->loadViewsFrom.'create')->with([
+        return view($this->loadViewsFrom . 'create')->with([
             'accounts' => Account::all(),
             'taxes' => Tax::all()
         ]);
@@ -132,18 +137,20 @@ class ItemController extends Controller
             'images7' => 'mimes:jpg,png,jpeg|max:2048|nullable',
         ]);
 
-        if ($validator->fails()) {
-        	$msg = '';
-            foreach ($validator->errors()->all() as $field => $messages) {
-                $msg .= "\n".$messages;
+        if ($validator->fails())
+        {
+            $msg = '';
+            foreach ($validator->errors()->all() as $field => $messages)
+            {
+                $msg .= "\n" . $messages;
             }
             return json_encode(['status' => false, 'message' => $msg]);
         }
 
-        $storage_path = '/items/'.date('Y-m');
+        $storage_path = '/items/' . date('Y-m');
 
         $storage = Storage::disk('public_storage');
-        if(!$storage->has($storage_path))
+        if (!$storage->has($storage_path))
         {
             $storage->makeDirectory($storage_path);
         }
@@ -152,8 +159,8 @@ class ItemController extends Controller
         {
             $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('image'));
 
-            $image_path = 'storage/'.$file_storage_name;
-            $image_url = url('storage/'.$file_storage_name);
+            $image_path = 'storage/' . $file_storage_name;
+            $image_url = url('storage/' . $file_storage_name);
         }
 
         $Item = new Item;
@@ -186,18 +193,18 @@ class ItemController extends Controller
 
         $Item->save();
 
-        for($i=0;$i<=7;$i++)
+        for ($i = 0; $i <= 7; $i++)
         {
-            if ($request->file('images'.$i))
+            if ($request->file('images' . $i))
             {
-                $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('images'.$i));
+                $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('images' . $i));
 
                 //save the item images
                 $ItemImage = new ItemImage;
                 $ItemImage->item_id = $Item->id;
-                $ItemImage->image_name = $request->file('images'.$i)->getClientOriginalName();
-                $ItemImage->image_path = 'storage/'.$file_storage_name;
-                $ItemImage->image_url = url('storage/'.$file_storage_name);
+                $ItemImage->image_name = $request->file('images' . $i)->getClientOriginalName();
+                $ItemImage->image_path = 'storage/' . $file_storage_name;
+                $ItemImage->image_url = url('storage/' . $file_storage_name);
                 $ItemImage->save();
             }
         }
@@ -212,27 +219,48 @@ class ItemController extends Controller
     }
 
     public function show()
-    {}
+    {
+    }
 
     public function edit($id)
     {
         //load the vue version of the app
-        if (!FacadesRequest::wantsJson()) {
+        if (!FacadesRequest::wantsJson())
+        {
             return view('l-limitless-bs4.layout_2-ltr-default.appVue');
         }
 
         $taxes = Tax::all();
-        $taxesKeyById = $taxes->keyBy('id');
 
         $accounts = Account::all();
         $accountsKeyById = $accounts->keyBy('id');
 
-        $attributes = Item::find($id);
-        $attributes->_method = 'PATCH';
+        $item = Item::find($id);
+
+        $attributes = $item->toArray();
+        $attributes['_method'] = 'PATCH';
+        $attributes['image'] = url($item->image_path);
+
+        $itemImages = $item->images->toArray();
+        $attributesImages = [];
+
+        for ($i=0;$i<8;$i++)
+        {
+            if (isset($itemImages[$i]))
+            {
+                $attributesImages[$i] = url($itemImages[$i]['image_path']);
+            }
+            else
+            {
+                $attributesImages[$i] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
+            }
+        }
+
+        $attributes['images'] = (object) $attributesImages;
 
         $data = [
             'pageTitle' => 'Update Item',
-            'urlPost' => '/items/'.$attributes->id, #required
+            'urlPost' => '/items/' . $attributes['id'], #required
             'currencies' => ClassesCurrencies::en_INSelectOptions(),
             'countries' => ClassesCountries::ungroupedSelectOptions(),
             'taxes' => $taxes,
@@ -240,12 +268,13 @@ class ItemController extends Controller
             'attributes' => $attributes
         ];
 
-        if (FacadesRequest::wantsJson()) {
+        if (FacadesRequest::wantsJson())
+        {
             return $data;
         }
 
         $Item = Item::find($id);
-        return view($this->loadViewsFrom.'edit')->with([
+        return view($this->loadViewsFrom . 'edit')->with([
             'accounts' => self::accounts(),
             'taxes' => self::taxes(),
             'item' => $Item,
@@ -256,15 +285,18 @@ class ItemController extends Controller
     {
         //check if the new name already exists
         $Item = Item::where('id', '!=', $id)->where('name', $request->name)->first();
-        if ($Item) {
+        if ($Item)
+        {
             return json_encode(['status' => false, 'message' => 'Name already in use.']);
         }
 
-        if ($request->sku) {
+        if ($request->sku)
+        {
 
             //check if the new sku already exists
             $Item = Item::where('id', '!=', $id)->where('sku', $request->sku)->first();
-            if ($Item) {
+            if ($Item)
+            {
                 return json_encode(['status' => false, 'message' => 'SKU already in use.']);
             }
         }
@@ -288,7 +320,8 @@ class ItemController extends Controller
             //'billing_description' => 'required', //not required
         ]);
 
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
 
             //$request->flash();
             //return redirect()->back()->withErrors($validator);
@@ -297,8 +330,9 @@ class ItemController extends Controller
             //print_r($errors); exit;
 
             $msg = '';
-            foreach ($errors->all() as $field => $messages) {
-                $msg .= "\n".$messages;
+            foreach ($errors->all() as $field => $messages)
+            {
+                $msg .= "\n" . $messages;
                 //print_r($messages); exit;
             }
 
@@ -344,7 +378,8 @@ class ItemController extends Controller
     }
 
     public function destroy()
-    {}
+    {
+    }
 
     public function VueSearchSelectSales(Request $request)
     {
@@ -354,8 +389,9 @@ class ItemController extends Controller
     public function search(Request $request)
     {
         $query = Item::query();
-        foreach ($request->search as $search) {
-            $query->where($search['column'], 'like', '%'.$search['value'].'%');
+        foreach ($request->search as $search)
+        {
+            $query->where($search['column'], 'like', '%' . $search['value'] . '%');
         }
         return $query->paginate(10);
     }
@@ -440,146 +476,154 @@ class ItemController extends Controller
     public function import(Request $request)
     {
         $allowed_file_type = [
-			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', //xlsx
-			'application/vnd.ms-excel',
-			'text/plain',
-			'text/csv',
-			'text/tsv'
-		];
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', //xlsx
+            'application/vnd.ms-excel',
+            'text/plain',
+            'text/csv',
+            'text/tsv'
+        ];
 
-		if(in_array($request->file->getClientMimeType(), $allowed_file_type)) {
-			// do nothing i.e allow file processing
-		} else {
-			$response = [
-				'status' 	=> false,
-				'message' 	=> 'ERROR: File type not allowed / mime type not allowed.'
-			];
-			return json_encode($response);
-		}
+        if (in_array($request->file->getClientMimeType(), $allowed_file_type))
+        {
+            // do nothing i.e allow file processing
+        }
+        else
+        {
+            $response = [
+                'status' => false,
+                'message' => 'ERROR: File type not allowed / mime type not allowed.'
+            ];
+            return json_encode($response);
+        }
 
-		//print_r($this->input->post()); exit;
+        //print_r($this->input->post()); exit;
 
-		//Save the uploaded file
-		$importFile = Storage::disk('public_storage')->putFile('/', $request->file('file'));
+        //Save the uploaded file
+        $importFile = Storage::disk('public_storage')->putFile('/', $request->file('file'));
 
 
-		//Copy imported file into array
-		//$params = ['io_factory' => true];
-		//$this->load->library('third_party_phpexcel', $params);
+        //Copy imported file into array
+        //$params = ['io_factory' => true];
+        //$this->load->library('third_party_phpexcel', $params);
 
-		//$data = Excel::toCollection($request->file('file'), 'storage/'.$importFile);
-		$excelToArray = Excel::toArray($request->file('file'), 'storage/'.$importFile);
-		//dd($excelToArray);
-		//print_r($excelToArray[0]);
+        //$data = Excel::toCollection($request->file('file'), 'storage/'.$importFile);
+        $excelToArray = Excel::toArray($request->file('file'), 'storage/' . $importFile);
+        //dd($excelToArray);
+        //print_r($excelToArray[0]);
 
-		$data = $excelToArray[0];
+        $data = $excelToArray[0];
 
-		//print_r($data); exit;
-		unset($data[0]); //delete the 1st line of titles
+        //print_r($data); exit;
+        unset($data[0]); //delete the 1st line of titles
 
-		/*
-			Check for error within the file
-			[A] => Category
-			[B] => Full name
-			[C] => Display name
-			[D] => Contact person
-			[E] => Contact Email
-			[F] => Contact phone
-			[G] => Payment terms
-			[H] => Remarks
-		*/
+        /*
+            Check for error within the file
+            [A] => Category
+            [B] => Full name
+            [C] => Display name
+            [D] => Contact person
+            [E] => Contact Email
+            [F] => Contact phone
+            [G] => Payment terms
+            [H] => Remarks
+        */
 
-		$responseMessage = null;
-		$items = [];
-		foreach($data as $key => $value) {
+        $responseMessage = null;
+        $items = [];
+        foreach ($data as $key => $value)
+        {
 
-			$row = [
-				'type' 					=> $value[0],
-				'name' 					=> $value[1],
-				'sku' 					=> $value[2],
-				'units' 				=> $value[3],
-				'selling_rate' 			=> $value[4],
-				'billing_rate' 			=> $value[5],
-				'selling_description' 	=> $value[6],
-				'billing_description' 	=> $value[7],
-				'tenant_id' 			=> Auth::user()->tenant->id,
-				'user_id' 				=> Auth::id(),
-				'selling_currency' 		=> Auth::user()->tenant->base_currency,
-				'billing_currency' 		=> Auth::user()->tenant->base_currency,
-				'selling_tax_inclusive' => 1,
-				'billing_tax_inclusive' => 1,
-			];
+            $row = [
+                'type' => $value[0],
+                'name' => $value[1],
+                'sku' => $value[2],
+                'units' => $value[3],
+                'selling_rate' => $value[4],
+                'billing_rate' => $value[5],
+                'selling_description' => $value[6],
+                'billing_description' => $value[7],
+                'tenant_id' => Auth::user()->tenant->id,
+                'user_id' => Auth::id(),
+                'selling_currency' => Auth::user()->tenant->base_currency,
+                'billing_currency' => Auth::user()->tenant->base_currency,
+                'selling_tax_inclusive' => 1,
+                'billing_tax_inclusive' => 1,
+            ];
 
-			$validator = Validator::make($row, [
-				'name' => ['required'],
-				'units' => ['required', 'numeric'],
-				'selling_rate' => ['required', 'numeric'],
-				'billing_rate' => ['numeric'],
-			]);
+            $validator = Validator::make($row, [
+                'name' => ['required'],
+                'units' => ['required', 'numeric'],
+                'selling_rate' => ['required', 'numeric'],
+                'billing_rate' => ['numeric'],
+            ]);
 
-			if ($validator->fails()) {
-				foreach ($validator->errors()->all() as $field => $messages) {
-					$responseMessage .= "\n" . $messages;
-				}
-				$response = [
-					'status' 	=> false,
-					'message' 	=> 'Error on row #' . ($key+1) . $responseMessage,
-				];
+            if ($validator->fails())
+            {
+                foreach ($validator->errors()->all() as $field => $messages)
+                {
+                    $responseMessage .= "\n" . $messages;
+                }
+                $response = [
+                    'status' => false,
+                    'message' => 'Error on row #' . ($key + 1) . $responseMessage,
+                ];
 
-				 return json_encode($response);
+                return json_encode($response);
 
-			} else {
-				$items[] = $row;
-			}
+            }
+            else
+            {
+                $items[] = $row;
+            }
 
-		}
+        }
 
-		//print_r($items); exit;
+        //print_r($items); exit;
 
-		Item::insert($items);
+        Item::insert($items);
 
-		$response = [
-			'status' 	=> true,
-			'message' 	=> count($items) . ' Item(s) imported.'."\n".$responseMessage,
-		];
+        $response = [
+            'status' => true,
+            'message' => count($items) . ' Item(s) imported.' . "\n" . $responseMessage,
+        ];
 
-		 return json_encode($response);
+        return json_encode($response);
     }
 
     public function deactivate($id, Request $request)
     {
-    	Item::whereIn('id', $request->ids)->update(['status' => 'deactivated']);
+        Item::whereIn('id', $request->ids)->update(['status' => 'deactivated']);
 
-		$response = [
-			'status' 	=> true,
-			'message' 	=> count($request->ids) . ' Item(s) deactivated.'
-		];
+        $response = [
+            'status' => true,
+            'message' => count($request->ids) . ' Item(s) deactivated.'
+        ];
 
-		 return json_encode($response);
+        return json_encode($response);
     }
 
     public function activate(Request $request)
     {
-    	Item::whereIn('id', $request->ids)->update(['status' => 'active']);
+        Item::whereIn('id', $request->ids)->update(['status' => 'active']);
 
-		$response = [
-			'status' 	=> true,
-			'message' 	=> count($request->ids) . ' Item(s) activated.',
-		];
+        $response = [
+            'status' => true,
+            'message' => count($request->ids) . ' Item(s) activated.',
+        ];
 
-		 return json_encode($response);
+        return json_encode($response);
     }
 
     public function delete(Request $request)
     {
-    	Item::whereIn('id', $request->ids)->delete();
+        Item::whereIn('id', $request->ids)->delete();
 
-		$response = [
-			'status' 	=> true,
-			'message' 	=> count($request->ids) . ' Item(s) deleted.',
-			'ids' 	=> $request->ids,
-		];
+        $response = [
+            'status' => true,
+            'message' => count($request->ids) . ' Item(s) deleted.',
+            'ids' => $request->ids,
+        ];
 
-		 return json_encode($response);
+        return json_encode($response);
     }
 }
