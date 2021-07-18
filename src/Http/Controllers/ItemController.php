@@ -77,6 +77,7 @@ class ItemController extends Controller
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
         ];
+        $attributes['imagesPresently'] = $attributes['images'];
 
         $data = [
             'pageTitle' => 'Create Item',
@@ -256,6 +257,7 @@ class ItemController extends Controller
             }
         }
 
+        $attributes['imagesPresently'] = (object) $attributesImages;
         $attributes['images'] = (object) $attributesImages;
 
         $data = [
