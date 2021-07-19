@@ -67,6 +67,7 @@ class ItemController extends Controller
         $attributes['selling_currency'] = Auth::user()->tenant->base_currency;
         $attributes['billing_currency'] = Auth::user()->tenant->base_currency;
         $attributes['image'] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
+        $attributes['imagePresently'] = $attributes['image'];
         $attributes['images'] = (object)[
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
@@ -78,6 +79,7 @@ class ItemController extends Controller
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
         ];
         $attributes['imagesPresently'] = $attributes['images'];
+        $attributes['imagesDeleted'] = [];
 
         $data = [
             'pageTitle' => 'Create Item',
@@ -241,6 +243,7 @@ class ItemController extends Controller
         $attributes = $item->toArray();
         $attributes['_method'] = 'PATCH';
         $attributes['image'] = url($item->image_path);
+        $attributes['imagePresently'] = $attributes['image'];
 
         $itemImages = $item->images->toArray();
         $attributesImages = [];
@@ -259,6 +262,7 @@ class ItemController extends Controller
 
         $attributes['imagesPresently'] = (object) $attributesImages;
         $attributes['images'] = (object) $attributesImages;
+        $attributes['imagesDeleted'] = [];
 
         $data = [
             'pageTitle' => 'Update Item',
