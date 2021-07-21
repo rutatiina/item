@@ -1,0 +1,385 @@
+<?php
+
+namespace Rutatiina\Item\Services;
+
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Rutatiina\Classes\Countries as ClassesCountries;
+use Rutatiina\Classes\Currencies as ClassesCurrencies;
+use Rutatiina\FinancialAccounting\Models\Account;
+use Rutatiina\Item\Models\Item;
+use Rutatiina\Tax\Models\Tax;
+
+class ItemService
+{
+    public static $errors = [];
+
+    public static function create()
+    {
+        $attributes = (new Item)->rgGetAttributes();
+
+        $attributes['type'] = 'product';
+        $attributes['selling_currency'] = Auth::user()->tenant->base_currency;
+        $attributes['billing_currency'] = Auth::user()->tenant->base_currency;
+        $attributes['image'] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
+        $attributes['imagePresently'] = $attributes['image'];
+        $attributes['images'] = (object)[
+            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+        ];
+        $attributes['imagesPresently'] = $attributes['images'];
+        $attributes['imagesDeleted'] = [];
+
+        return [
+            'pageTitle' => 'Create Item',
+            'urlPost' => '/items', #required
+            'currencies' => ClassesCurrencies::en_IN(),
+            'countries' => ClassesCountries::ungrouped(),
+            'taxes' => Tax::all(),
+            'accounts' => Account::all(),
+            'attributes' => $attributes,
+            'selectedSellingTax' => json_decode('{}'),
+            'selectedBillingTax' => json_decode('{}'),
+            'selectedSellingAccount' => json_decode('{}'),
+            'selectedBillingAccount' => json_decode('{}'),
+        ];
+    }
+
+    public static function edit($id)
+    {
+        $taxes = Tax::all()->keyBy('code');
+
+        $txn = Invoice::findOrFail($id);
+        $txn->load('contact', 'items.taxes');
+        $txn->setAppends(['taxes']);
+
+        $attributes = $txn->toArray();
+
+        //print_r($attributes); exit;
+
+        $attributes['_method'] = 'PATCH';
+
+        $attributes['contact']['currency'] = $attributes['contact']['currency_and_exchange_rate'];
+        $attributes['contact']['currencies'] = $attributes['contact']['currencies_and_exchange_rates'];
+
+        $attributes['taxes'] = json_decode('{}');
+
+        foreach ($attributes['items'] as $key => $item)
+        {
+            $selectedItem = [
+                'id' => $item['item_id'],
+                'name' => $item['name'],
+                'description' => $item['description'],
+                'rate' => $item['rate'],
+                'tax_method' => 'inclusive',
+                'account_type' => null,
+            ];
+
+            $attributes['items'][$key]['selectedItem'] = $selectedItem; #required
+            $attributes['items'][$key]['selectedTaxes'] = []; #required
+            $attributes['items'][$key]['displayTotal'] = 0; #required
+
+            foreach ($item['taxes'] as $itemTax)
+            {
+                $attributes['items'][$key]['selectedTaxes'][] = $taxes[$itemTax['tax_code']];
+            }
+
+            $attributes['items'][$key]['rate'] = floatval($item['rate']);
+            $attributes['items'][$key]['quantity'] = floatval($item['quantity']);
+            $attributes['items'][$key]['total'] = floatval($item['total']);
+            $attributes['items'][$key]['displayTotal'] = $item['total']; #required
+        };
+
+        return $attributes;
+    }
+
+    private static function validate($request, $update = false)
+    {
+        $rules = [
+            'type' => 'required',
+            'name' => ['required', 'string', 'max:255', 'unique:Rutatiina\Item\Models\Item'],
+            'sku' => ['nullable', 'string', 'max:255', 'unique:Rutatiina\Item\Models\Item'],
+            'units' => 'required|numeric',
+
+            'selling_rate' => 'required|numeric',
+            'selling_currency' => 'required',
+            //'selling_financial_account_code' => 'required',
+            //'selling_tax_code' => 'required',
+            //'selling_tax_inclusive' => 'required',
+            //'selling_description' => 'required', //not required
+
+            'billing_rate' => 'required',
+            'billing_currency' => 'required',
+            //'billing_financial_account_code' => 'required',
+            //'billing_tax_code' => 'required',
+            //'billing_tax_inclusive' => 'required',
+            //'billing_description' => 'required', //not required,
+
+            'image' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+            'images0' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+            'images1' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+            'images2' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+            'images3' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+            'images4' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+            'images5' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+            'images6' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+            'images7' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+        ];
+
+        if ($update)
+        {
+            $rules['name'] = [
+                'required',
+                'string',
+                'max:255',
+                //'unique:tenant.rg_items',
+                Rule::unique('Rutatiina\Item\Models\Item')->ignore($request->id, 'id')
+            ];
+            $rules['sku'] = [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('Rutatiina\Item\Models\Item')->ignore($request->id, 'id')
+            ];
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails())
+        {
+            self::$errors = $validator->errors()->all();
+            return false;
+        }
+    }
+
+    public static function store($request)
+    {
+        $validate = self::validate($request);
+
+        if ($validate === false)
+        {
+            return false;
+        }
+
+        //start database transaction
+        DB::connection('tenant')->beginTransaction();
+
+        try
+        {
+            $storage_path = '/items/' . date('Y-m');
+
+            $storage = Storage::disk('public_storage');
+            if (!$storage->has($storage_path))
+            {
+                $storage->makeDirectory($storage_path);
+            }
+
+            if ($request->file('image'))
+            {
+                $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('image'));
+
+                $image_path = 'storage/' . $file_storage_name;
+                $image_url = url('storage/' . $file_storage_name);
+            }
+
+            $Item = new Item;
+
+            $Item->tenant_id = Auth::user()->tenant->id;
+            $Item->type = $request->type;
+            $Item->name = $request->name;
+            $Item->sku = $request->sku;
+            $Item->inventory_tracking = $request->inventory_tracking;
+            $Item->units = (is_numeric($request->units)) ? $request->units : 1;
+
+            $Item->selling_rate = floatval($request->selling_rate);
+            $Item->selling_currency = $request->selling_currency;
+            $Item->selling_financial_account_code = $request->selling_financial_account_code;
+            $Item->selling_tax_code = (empty($request->selling_tax_code)) ? null : $request->selling_tax_code;
+            $Item->selling_tax_inclusive = $request->selling_tax_inclusive;
+            $Item->selling_description = $request->selling_description;
+
+            $Item->billing_rate = floatval($request->billing_rate);
+            $Item->billing_currency = $request->billing_currency;
+            $Item->billing_financial_account_code = $request->billing_financial_account_code;
+            $Item->billing_tax_code = (empty($request->billing_tax_code)) ? null : $request->billing_tax_code;
+            $Item->billing_tax_inclusive = $request->billing_tax_inclusive;
+            $Item->billing_description = $request->billing_description;
+            $Item->status = 'active';
+
+            $Item->image_name = $request->file('image')->getClientOriginalName();
+            $Item->image_path = (isset($image_path)) ? $image_path : null;
+            $Item->image_url = (isset($image_url)) ? $image_url : null;
+
+            $Item->save();
+
+            for ($i = 0; $i <= 7; $i++)
+            {
+                if ($request->file('images' . $i))
+                {
+                    $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('images' . $i));
+
+                    //save the item images
+                    $ItemImage = new ItemImage;
+                    $ItemImage->item_id = $Item->id;
+                    $ItemImage->image_name = $request->file('images' . $i)->getClientOriginalName();
+                    $ItemImage->image_path = 'storage/' . $file_storage_name;
+                    $ItemImage->image_url = url('storage/' . $file_storage_name);
+                    $ItemImage->save();
+                }
+            }
+
+            DB::connection('tenant')->commit();
+
+            return $Item;
+
+        }
+        catch (\Throwable $e)
+        {
+            DB::connection('tenant')->rollBack();
+
+            Log::critical('Fatal Internal Error: Failed to save item to database');
+            Log::critical($e);
+
+            //print_r($e); exit;
+            if (App::environment('local'))
+            {
+                self::$errors[] = 'Error: Failed to save item to database.';
+                self::$errors[] = 'File: ' . $e->getFile();
+                self::$errors[] = 'Line: ' . $e->getLine();
+                self::$errors[] = 'Message: ' . $e->getMessage();
+            }
+            else
+            {
+                self::$errors[] = 'Fatal Internal Error: Failed to save item to database.';
+            }
+
+            return false;
+        }
+        //*/
+
+    }
+
+    public static function update($id, $request)
+    {
+        $validate = self::validate($request, true);
+
+        if ($validate === false)
+        {
+            return false;
+        }
+
+        //start database transaction
+        DB::connection('tenant')->beginTransaction();
+
+        try
+        {
+            $item = Item::find($id);
+
+            $item->updated_by = Auth::id();
+            $item->type = $request->type;
+            $item->name = $request->name;
+            $item->sku = $request->sku;
+            $item->inventory_tracking = $request->inventory_tracking;
+            $item->units = (is_numeric($request->units)) ? $request->units : 1;
+
+            $item->selling_rate = floatval($request->selling_rate);
+            $item->selling_currency = $request->selling_currency;
+            $item->selling_financial_account_code = $request->selling_financial_account_code;
+            $item->selling_tax_code = (empty($request->selling_tax_code)) ? null : $request->selling_tax_code;
+            $item->selling_tax_inclusive = $request->selling_tax_inclusive;
+            $item->selling_description = $request->selling_description;
+
+            $item->billing_rate = floatval($request->billing_rate);
+            $item->billing_currency = $request->billing_currency;
+            $item->billing_financial_account_code = $request->billing_financial_account_code;
+            $item->billing_tax_code = (empty($request->billing_tax_code)) ? null : $request->billing_tax_code;
+            $item->billing_tax_inclusive = $request->billing_tax_inclusive;
+            $item->billing_description = $request->billing_description;
+
+            $item->save();
+
+            DB::connection('tenant')->commit();
+
+            return $item;
+
+        }
+        catch (\Throwable $e)
+        {
+            DB::connection('tenant')->rollBack();
+
+            Log::critical('Fatal Internal Error: Failed to update item in database');
+            Log::critical($e);
+
+            //print_r($e); exit;
+            if (App::environment('local'))
+            {
+                self::$errors[] = 'Error: Failed to update invoice in database.';
+                self::$errors[] = 'File: ' . $e->getFile();
+                self::$errors[] = 'Line: ' . $e->getLine();
+                self::$errors[] = 'Message: ' . $e->getMessage();
+            }
+            else
+            {
+                self::$errors[] = 'Fatal Internal Error: Failed to update item in database.';
+            }
+
+            return false;
+        }
+
+    }
+
+    public static function destroy($id)
+    {
+        //start database transaction
+        DB::connection('tenant')->beginTransaction();
+
+        try
+        {
+            $item = Item::findOrFail($id);
+
+            //Delete affected relations
+            $item->images()->delete();
+
+            $item->delete();
+
+            DB::connection('tenant')->commit();
+
+            return true;
+
+        }
+        catch (\Throwable $e)
+        {
+            DB::connection('tenant')->rollBack();
+
+            Log::critical('Fatal Internal Error: Failed to delete item from database');
+            Log::critical($e);
+
+            //print_r($e); exit;
+            if (App::environment('local'))
+            {
+                self::$errors[] = 'Error: Failed to delete item from database.';
+                self::$errors[] = 'File: ' . $e->getFile();
+                self::$errors[] = 'Line: ' . $e->getLine();
+                self::$errors[] = 'Message: ' . $e->getMessage();
+            }
+            else
+            {
+                self::$errors[] = 'Fatal Internal Error: Failed to delete item from database.';
+            }
+
+            return false;
+        }
+    }
+
+}

@@ -95,15 +95,7 @@ class ItemController extends Controller
             'selectedBillingAccount' => json_decode('{}'),
         ];
 
-        if (FacadesRequest::wantsJson())
-        {
-            return $data;
-        }
-
-        return view($this->loadViewsFrom . 'create')->with([
-            'accounts' => Account::all(),
-            'taxes' => Tax::all()
-        ]);
+        return $data;
     }
 
     public function store(Request $request)
