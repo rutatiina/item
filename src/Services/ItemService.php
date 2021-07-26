@@ -13,6 +13,7 @@ use Rutatiina\Classes\Countries as ClassesCountries;
 use Rutatiina\Classes\Currencies as ClassesCurrencies;
 use Rutatiina\FinancialAccounting\Models\Account;
 use Rutatiina\Item\Models\Item;
+use Rutatiina\Item\Models\ItemImage;
 use Rutatiina\Tax\Models\Tax;
 
 class ItemService
@@ -58,50 +59,7 @@ class ItemService
 
     public static function edit($id)
     {
-        $taxes = Tax::all()->keyBy('code');
-
-        $txn = Invoice::findOrFail($id);
-        $txn->load('contact', 'items.taxes');
-        $txn->setAppends(['taxes']);
-
-        $attributes = $txn->toArray();
-
-        //print_r($attributes); exit;
-
-        $attributes['_method'] = 'PATCH';
-
-        $attributes['contact']['currency'] = $attributes['contact']['currency_and_exchange_rate'];
-        $attributes['contact']['currencies'] = $attributes['contact']['currencies_and_exchange_rates'];
-
-        $attributes['taxes'] = json_decode('{}');
-
-        foreach ($attributes['items'] as $key => $item)
-        {
-            $selectedItem = [
-                'id' => $item['item_id'],
-                'name' => $item['name'],
-                'description' => $item['description'],
-                'rate' => $item['rate'],
-                'tax_method' => 'inclusive',
-                'account_type' => null,
-            ];
-
-            $attributes['items'][$key]['selectedItem'] = $selectedItem; #required
-            $attributes['items'][$key]['selectedTaxes'] = []; #required
-            $attributes['items'][$key]['displayTotal'] = 0; #required
-
-            foreach ($item['taxes'] as $itemTax)
-            {
-                $attributes['items'][$key]['selectedTaxes'][] = $taxes[$itemTax['tax_code']];
-            }
-
-            $attributes['items'][$key]['rate'] = floatval($item['rate']);
-            $attributes['items'][$key]['quantity'] = floatval($item['quantity']);
-            $attributes['items'][$key]['total'] = floatval($item['total']);
-            $attributes['items'][$key]['displayTotal'] = $item['total']; #required
-        };
-
-        return $attributes;
+        //
     }
 
     private static function validate($request, $update = false)
@@ -232,6 +190,7 @@ class ItemService
                     //save the item images
                     $ItemImage = new ItemImage;
                     $ItemImage->item_id = $Item->id;
+                    $ItemImage->position = $i;
                     $ItemImage->image_name = $request->file('images' . $i)->getClientOriginalName();
                     $ItemImage->image_path = 'storage/' . $file_storage_name;
                     $ItemImage->image_url = url('storage/' . $file_storage_name);
@@ -284,6 +243,32 @@ class ItemService
 
         try
         {
+            $storage_path = '/items/' . date('Y-m');
+
+            $storage = Storage::disk('public_storage');
+            if (!$storage->has($storage_path))
+            {
+                $storage->makeDirectory($storage_path);
+            }
+
+            if ($request->file('image'))
+            {
+                $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('image'));
+
+                $image_path = 'storage/' . $file_storage_name;
+                $image_url = url('storage/' . $file_storage_name);
+            }
+
+            //check and delete the profile image if scheduled for
+            if (in_array('profile', $request->input('images_deleted', [])))
+            {
+                Item::where('id', $id)->update([
+                    'image_name' => null,
+                    'image_path' => null,
+                    'image_url' => null
+                ]);
+            }
+
             $item = Item::find($id);
 
             $item->updated_by = Auth::id();
@@ -307,7 +292,40 @@ class ItemService
             $item->billing_tax_inclusive = $request->billing_tax_inclusive;
             $item->billing_description = $request->billing_description;
 
+            if ($request->file('image'))
+            {
+                $item->image_name = $request->file('image')->getClientOriginalName();
+                $item->image_path = (isset($image_path)) ? $image_path : null;
+                $item->image_url = (isset($image_url)) ? $image_url : null;
+            }
+
             $item->save();
+
+            //delete the images that are sheduled for delete
+            foreach ($request->input('images_deleted', []) as $imagePosition)
+            {
+                if (is_numeric($imagePosition))
+                {
+                    ItemImage::where('position', $imagePosition)->delete();
+                }
+            }
+
+            for ($i = 0; $i <= 7; $i++)
+            {
+                if ($request->file('images' . $i))
+                {
+                    $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('images' . $i));
+
+                    //save the item images
+                    $ItemImage = new ItemImage;
+                    $ItemImage->item_id = $item->id;
+                    $ItemImage->position = $i;
+                    $ItemImage->image_name = $request->file('images' . $i)->getClientOriginalName();
+                    $ItemImage->image_path = 'storage/' . $file_storage_name;
+                    $ItemImage->image_url = url('storage/' . $file_storage_name);
+                    $ItemImage->save();
+                }
+            }
 
             DB::connection('tenant')->commit();
 
@@ -324,7 +342,7 @@ class ItemService
             //print_r($e); exit;
             if (App::environment('local'))
             {
-                self::$errors[] = 'Error: Failed to update invoice in database.';
+                self::$errors[] = 'Error: Failed to update item in database.';
                 self::$errors[] = 'File: ' . $e->getFile();
                 self::$errors[] = 'Line: ' . $e->getLine();
                 self::$errors[] = 'Message: ' . $e->getMessage();

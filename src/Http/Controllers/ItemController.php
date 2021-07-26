@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Rutatiina\Item\Models\ItemImage;
+use Rutatiina\Item\Services\ItemService;
 use Rutatiina\Tax\Models\Tax;
 use Rutatiina\FinancialAccounting\Models\Account;
 use Rutatiina\Item\Models\Item;
@@ -67,7 +68,7 @@ class ItemController extends Controller
         $attributes['selling_currency'] = Auth::user()->tenant->base_currency;
         $attributes['billing_currency'] = Auth::user()->tenant->base_currency;
         $attributes['image'] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
-        $attributes['imagePresently'] = $attributes['image'];
+        $attributes['image_presently'] = $attributes['image'];
         $attributes['images'] = (object)[
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
@@ -78,8 +79,8 @@ class ItemController extends Controller
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
         ];
-        $attributes['imagesPresently'] = $attributes['images'];
-        $attributes['imagesDeleted'] = [];
+        $attributes['images_presently'] = $attributes['images'];
+        $attributes['images_deleted'] = [];
 
         $data = [
             'pageTitle' => 'Create Item',
@@ -100,121 +101,27 @@ class ItemController extends Controller
 
     public function store(Request $request)
     {
+        $store = ItemService::store($request);
 
-        $validator = Validator::make($request->all(), [
-            'type' => 'required',
-            'name' => ['required', 'string', 'max:255', 'unique:tenant.rg_items'],
-            'sku' => ['nullable', 'string', 'max:255', 'unique:tenant.rg_items'],
-            'units' => 'required|numeric',
-
-            'selling_rate' => 'required|numeric',
-            'selling_currency' => 'required',
-            //'selling_financial_account_code' => 'required',
-            //'selling_tax_code' => 'required',
-            //'selling_tax_inclusive' => 'required',
-            //'selling_description' => 'required', //not required
-
-            'billing_rate' => 'required',
-            'billing_currency' => 'required',
-            //'billing_financial_account_code' => 'required',
-            //'billing_tax_code' => 'required',
-            //'billing_tax_inclusive' => 'required',
-            //'billing_description' => 'required', //not required,
-
-            'image' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-            'images0' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-            'images1' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-            'images2' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-            'images3' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-            'images4' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-            'images5' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-            'images6' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-            'images7' => 'mimes:jpg,png,jpeg|max:2048|nullable',
-        ]);
-
-        if ($validator->fails())
+        if ($store)
         {
-            $msg = '';
-            foreach ($validator->errors()->all() as $field => $messages)
-            {
-                $msg .= "\n" . $messages;
-            }
-            return json_encode(['status' => false, 'message' => $msg]);
+            $response = [
+                'status' => true,
+                'messages' => ['Item successfully saved.']
+            ];
         }
-
-        $storage_path = '/items/' . date('Y-m');
-
-        $storage = Storage::disk('public_storage');
-        if (!$storage->has($storage_path))
+        else
         {
-            $storage->makeDirectory($storage_path);
+            return [
+                'status' => true,
+                'messages' => ItemService::$errors
+            ];
         }
-
-        if ($request->file('image'))
-        {
-            $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('image'));
-
-            $image_path = 'storage/' . $file_storage_name;
-            $image_url = url('storage/' . $file_storage_name);
-        }
-
-        $Item = new Item;
-
-        $Item->tenant_id = Auth::user()->tenant->id;
-        $Item->type = $request->type;
-        $Item->name = $request->name;
-        $Item->sku = $request->sku;
-        $Item->inventory_tracking = $request->inventory_tracking;
-        $Item->units = (is_numeric($request->units)) ? $request->units : 1;
-
-        $Item->selling_rate = floatval($request->selling_rate);
-        $Item->selling_currency = $request->selling_currency;
-        $Item->selling_financial_account_code = $request->selling_financial_account_code;
-        $Item->selling_tax_code = (empty($request->selling_tax_code)) ? null : $request->selling_tax_code;
-        $Item->selling_tax_inclusive = $request->selling_tax_inclusive;
-        $Item->selling_description = $request->selling_description;
-
-        $Item->billing_rate = floatval($request->billing_rate);
-        $Item->billing_currency = $request->billing_currency;
-        $Item->billing_financial_account_code = $request->billing_financial_account_code;
-        $Item->billing_tax_code = (empty($request->billing_tax_code)) ? null : $request->billing_tax_code;
-        $Item->billing_tax_inclusive = $request->billing_tax_inclusive;
-        $Item->billing_description = $request->billing_description;
-        $Item->status = 'active';
-
-        $Item->image_name = $request->file('image')->getClientOriginalName();
-        $Item->image_path = (isset($image_path)) ? $image_path : null;
-        $Item->image_url = (isset($image_url)) ? $image_url : null;
-
-        $Item->save();
-
-        for ($i = 0; $i <= 7; $i++)
-        {
-            if ($request->file('images' . $i))
-            {
-                $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('images' . $i));
-
-                //save the item images
-                $ItemImage = new ItemImage;
-                $ItemImage->item_id = $Item->id;
-                $ItemImage->image_name = $request->file('images' . $i)->getClientOriginalName();
-                $ItemImage->image_path = 'storage/' . $file_storage_name;
-                $ItemImage->image_url = url('storage/' . $file_storage_name);
-                $ItemImage->save();
-            }
-        }
-
-        $response = [
-            'status' => true,
-            'message' => 'Item successfully saved.'
-        ];
-
-        return json_encode($response);
-
     }
 
     public function show()
     {
+        //
     }
 
     public function edit($id)
@@ -235,7 +142,7 @@ class ItemController extends Controller
         $attributes = $item->toArray();
         $attributes['_method'] = 'PATCH';
         $attributes['image'] = url($item->image_path);
-        $attributes['imagePresently'] = $attributes['image'];
+        $attributes['image_presently'] = $attributes['image'];
 
         $itemImages = $item->images->toArray();
         $attributesImages = [];
@@ -252,9 +159,9 @@ class ItemController extends Controller
             }
         }
 
-        $attributes['imagesPresently'] = (object) $attributesImages;
+        $attributes['images_presently'] = (object) $attributesImages;
         $attributes['images'] = (object) $attributesImages;
-        $attributes['imagesDeleted'] = [];
+        $attributes['images_deleted'] = [];
 
         $data = [
             'pageTitle' => 'Update Item',
@@ -281,98 +188,22 @@ class ItemController extends Controller
 
     public function update($id, Request $request)
     {
-        //check if the new name already exists
-        $Item = Item::where('id', '!=', $id)->where('name', $request->name)->first();
-        if ($Item)
+        $store = ItemService::update($id, $request);
+
+        if ($store)
         {
-            return json_encode(['status' => false, 'message' => 'Name already in use.']);
-        }
-
-        if ($request->sku)
-        {
-
-            //check if the new sku already exists
-            $Item = Item::where('id', '!=', $id)->where('sku', $request->sku)->first();
-            if ($Item)
-            {
-                return json_encode(['status' => false, 'message' => 'SKU already in use.']);
-            }
-        }
-
-        $validator = Validator::make($request->all(), [
-            'type' => 'required',
-            'units' => 'required|numeric',
-
-            'selling_rate' => 'required|numeric',
-            'selling_currency' => 'required',
-            //'selling_financial_account_code' => 'required',
-            //'selling_tax_code' => 'required',
-            //'selling_tax_inclusive' => 'required',
-            //'selling_description' => 'required', //not required
-
-            'billing_rate' => 'required',
-            'billing_currency' => 'required',
-            //'billing_financial_account_code' => 'required',
-            //'billing_tax_code' => 'required',
-            //'billing_tax_inclusive' => 'required',
-            //'billing_description' => 'required', //not required
-        ]);
-
-        if ($validator->fails())
-        {
-
-            //$request->flash();
-            //return redirect()->back()->withErrors($validator);
-
-            $errors = $validator->errors();
-            //print_r($errors); exit;
-
-            $msg = '';
-            foreach ($errors->all() as $field => $messages)
-            {
-                $msg .= "\n" . $messages;
-                //print_r($messages); exit;
-            }
-
-            $response = [
-                'status' => false,
-                'message' => $msg
+            return [
+                'status' => true,
+                'messages' => ['Item successfully Updated.']
             ];
-
-            return json_encode($response);
         }
-
-        $Item = Item::find($id);
-
-        $Item->updated_by = Auth::id();
-        $Item->type = $request->type;
-        $Item->name = $request->name;
-        $Item->sku = $request->sku;
-        $Item->inventory_tracking = $request->inventory_tracking;
-        $Item->units = (is_numeric($request->units)) ? $request->units : 1;
-
-        $Item->selling_rate = floatval($request->selling_rate);
-        $Item->selling_currency = $request->selling_currency;
-        $Item->selling_financial_account_code = $request->selling_financial_account_code;
-        $Item->selling_tax_code = (empty($request->selling_tax_code)) ? null : $request->selling_tax_code;
-        $Item->selling_tax_inclusive = $request->selling_tax_inclusive;
-        $Item->selling_description = $request->selling_description;
-
-        $Item->billing_rate = floatval($request->billing_rate);
-        $Item->billing_currency = $request->billing_currency;
-        $Item->billing_financial_account_code = $request->billing_financial_account_code;
-        $Item->billing_tax_code = (empty($request->billing_tax_code)) ? null : $request->billing_tax_code;
-        $Item->billing_tax_inclusive = $request->billing_tax_inclusive;
-        $Item->billing_description = $request->billing_description;
-
-        $Item->save();
-
-        $response = [
-            'status' => true,
-            'message' => 'Item successfully Updated.'
-        ];
-
-        return json_encode($response);
+        else
+        {
+            return [
+                'status' => true,
+                'messages' => ItemService::$errors
+            ];
+        }
     }
 
     public function destroy()
