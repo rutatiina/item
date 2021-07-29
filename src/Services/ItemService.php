@@ -135,6 +135,8 @@ class ItemService
 
         try
         {
+            $tenantId = Auth::user()->tenant->id;
+
             $storage_path = '/items/' . date('Y-m');
 
             $storage = Storage::disk('public_storage');
@@ -153,7 +155,7 @@ class ItemService
 
             $Item = new Item;
 
-            $Item->tenant_id = Auth::user()->tenant->id;
+            $Item->tenant_id = $tenantId;
             $Item->type = $request->type;
             $Item->name = $request->name;
             $Item->sku = $request->sku;
@@ -189,6 +191,7 @@ class ItemService
 
                     //save the item images
                     $ItemImage = new ItemImage;
+                    $ItemImage->tenant_id = $tenantId;
                     $ItemImage->item_id = $Item->id;
                     $ItemImage->position = $i;
                     $ItemImage->image_name = $request->file('images' . $i)->getClientOriginalName();
@@ -243,6 +246,8 @@ class ItemService
 
         try
         {
+            $tenantId = Auth::user()->tenant->id;
+
             $storage_path = '/items/' . date('Y-m');
 
             $storage = Storage::disk('public_storage');
@@ -318,6 +323,7 @@ class ItemService
 
                     //save the item images
                     $ItemImage = new ItemImage;
+                    $ItemImage->tenant_id = $tenantId;
                     $ItemImage->item_id = $item->id;
                     $ItemImage->position = $i;
                     $ItemImage->image_name = $request->file('images' . $i)->getClientOriginalName();

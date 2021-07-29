@@ -105,7 +105,7 @@ class ItemController extends Controller
 
         if ($store)
         {
-            $response = [
+            return [
                 'status' => true,
                 'messages' => ['Item successfully saved.']
             ];
@@ -113,7 +113,7 @@ class ItemController extends Controller
         else
         {
             return [
-                'status' => true,
+                'status' => false,
                 'messages' => ItemService::$errors
             ];
         }
@@ -144,7 +144,7 @@ class ItemController extends Controller
         $attributes['image'] = url($item->image_path);
         $attributes['image_presently'] = $attributes['image'];
 
-        $itemImages = $item->images->toArray();
+        $itemImages = $item->images->keyBy('position')->toArray();
         $attributesImages = [];
 
         for ($i=0;$i<8;$i++)
@@ -163,7 +163,7 @@ class ItemController extends Controller
         $attributes['images'] = (object) $attributesImages;
         $attributes['images_deleted'] = [];
 
-        $data = [
+        return [
             'pageTitle' => 'Update Item',
             'urlPost' => '/items/' . $attributes['id'], #required
             'currencies' => ClassesCurrencies::en_INSelectOptions(),
@@ -172,18 +172,6 @@ class ItemController extends Controller
             'accounts' => $accounts,
             'attributes' => $attributes
         ];
-
-        if (FacadesRequest::wantsJson())
-        {
-            return $data;
-        }
-
-        $Item = Item::find($id);
-        return view($this->loadViewsFrom . 'edit')->with([
-            'accounts' => self::accounts(),
-            'taxes' => self::taxes(),
-            'item' => $Item,
-        ]);
     }
 
     public function update($id, Request $request)
