@@ -28,6 +28,7 @@ Route::group(['middleware' => ['web', 'auth', 'tenant']], function() {
 
     });
 
+	Route::resource('items/categories', 'Rutatiina\Item\Http\Controllers\ItemCartegoryController');
 	Route::resource('items', 'Rutatiina\Item\Http\Controllers\ItemController');
 
 });
