@@ -13,7 +13,7 @@ class CreateRgItemSubCategoriesTable extends Migration
      */
     public function up()
     {
-        Schema::connection('tenant')->create('item_sub_categories', function (Blueprint $table) {
+        Schema::connection('tenant')->create('rg_item_sub_categories', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamps();
 
@@ -45,6 +45,6 @@ class CreateRgItemSubCategoriesTable extends Migration
      */
     public function down()
     {
-        Schema::connection('tenant')->dropIfExists('item_sub_categories');
+        Schema::connection('tenant')->dropIfExists('rg_item_sub_categories');
     }
 }

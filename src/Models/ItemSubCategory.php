@@ -12,11 +12,13 @@ class ItemSubCategory extends Model
 
     protected $connection = 'tenant';
 
-    protected $table = 'item_sub_categories';
+    protected $table = 'rg_item_sub_categories';
 
     protected $primaryKey = 'id';
 
     protected $dates = ['deleted_at'];
+
+    protected $guarded = ['id'];
 
     /**
      * The "booting" method of the model.

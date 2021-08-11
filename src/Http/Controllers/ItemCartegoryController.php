@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Rutatiina\Item\Models\ItemCategory;
 use Rutatiina\Item\Models\ItemImage;
+use Rutatiina\Item\Services\ItemCategoryService;
 use Rutatiina\Item\Services\ItemService;
 use Rutatiina\Tax\Models\Tax;
 use Rutatiina\FinancialAccounting\Models\Account;
@@ -73,20 +74,22 @@ class ItemCartegoryController extends Controller
 
     public function store(Request $request)
     {
-        $store = ItemService::store($request);
+        //return $request;
+
+        $store = ItemCategoryService::store($request);
 
         if ($store)
         {
             return [
                 'status' => true,
-                'messages' => ['Item successfully saved.']
+                'messages' => ['Item category successfully saved.']
             ];
         }
         else
         {
             return [
                 'status' => false,
-                'messages' => ItemService::$errors
+                'messages' => ItemCategoryService::$errors
             ];
         }
     }
