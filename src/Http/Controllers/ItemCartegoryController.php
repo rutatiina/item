@@ -157,12 +157,22 @@ class ItemCartegoryController extends Controller
 
     public function search(Request $request)
     {
-        $query = Item::query();
+        //return $request;
+
+        $query = ItemCategory::query();
         foreach ($request->search as $search)
         {
             $query->where($search['column'], 'like', '%' . $search['value'] . '%');
         }
-        return $query->paginate(10);
+
+        if ($request->data_format == 'select2')
+        {
+            return $query->limit(100)->get();
+        }
+        else
+        {
+            return $query->paginate(10);
+        }
     }
 
     public function datatables()

@@ -203,6 +203,11 @@ class ItemController extends Controller
         return static::VueSearchSelectDataItemsSales($request);
     }
 
+    public function vuePos(Request $request)
+    {
+        return static::vuePosData($request);
+    }
+
     public function search(Request $request)
     {
         $query = Item::query();

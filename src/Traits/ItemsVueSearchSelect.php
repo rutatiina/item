@@ -348,4 +348,73 @@ trait ItemsVueSearchSelect
         return array_values($response);
     }
 
+    public function vuePosData($request)
+    {
+        $query = Item::query();
+        $query->select(
+            'id',
+            DB::raw('name'),
+            DB::raw("'item' as type"),
+            DB::raw('selling_currency as currency'),
+            DB::raw('selling_description as description'),
+            DB::raw('selling_financial_account_code as financial_account_code'),
+            DB::raw('selling_rate'),
+            DB::raw('if (selling_tax_inclusive, \'inclusive\', \'exclusive\') as tax_method'),
+            'image_url'
+        );
+        $query->whereNotIn('type', ['cost_center']);
+        $query->whereNotIn('status', ['deactivated']);
+
+        $items = $query->get();
+
+        //print_r($items); exit;
+
+        //Extract the categories
+        $types = [];
+
+        //print_r($items); exit;
+
+        if ($items->isEmpty()) {
+            return [];
+        }
+
+        foreach ($items as $item) {
+            $types[] = (empty($item->account_type)) ? $item->type : $item->account_type;
+        }
+
+        $types = array_unique($types);
+
+        $response = [];
+
+        foreach ($types as $type) {
+
+            //$response = [];
+
+            foreach ($items as $item) {
+
+                $checker = (empty($item->account_type)) ? $item->type : $item->account_type;
+
+                if ( preg_match('/'.$type.'/i', $checker)) {
+
+                    $response[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'type' => $item->type,
+                        'currency' => $item->currency,
+                        'description' => $item->description,
+                        //'financial_account_code' => $item->financial_account_code,
+                        'rate' => $item->selling_rate,
+                        'tax_method' => $item->tax_method,
+                        'account_type' => @$item->account_type,
+                        'image_url' => $item->image_url,
+                    ];
+                }
+            }
+        }
+
+        //Delete the empty types
+
+        return array_values($response);
+    }
+
 }
