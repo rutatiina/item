@@ -2,6 +2,7 @@
 
 use Rutatiina\Item\Http\Controllers\ItemCartegoryController;
 use Rutatiina\Item\Http\Controllers\ItemController;
+use Rutatiina\Item\Http\Controllers\ItemSubCategoryController;
 
 Route::group(['middleware' => ['web']], function() {
 	Route::prefix('docs/items')->group(function () {
@@ -35,7 +36,11 @@ Route::group(['middleware' => ['web', 'auth', 'tenant']], function() {
 
     });
 
-	Route::resource('items/categories', 'Rutatiina\Item\Http\Controllers\ItemCartegoryController');
-	Route::resource('items', 'Rutatiina\Item\Http\Controllers\ItemController');
+    Route::resources([
+        'items/categories/{id}/sub-categories' => ItemSubCategoryController::class,
+        'items/sub-categories' => ItemSubCategoryController::class,
+        'items/categories' => ItemCartegoryController::class,
+        'items' => ItemController::class,
+    ]);
 
 });
