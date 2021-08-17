@@ -23,6 +23,7 @@ use Rutatiina\Classes\Currencies as ClassesCurrencies;
 use Rutatiina\Item\Traits\ItemsVueSearchSelect;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
+use function PHPUnit\Framework\isEmpty;
 
 class ItemSubCategoryController extends Controller
 {
@@ -168,9 +169,12 @@ class ItemSubCategoryController extends Controller
         //return $request;
 
         $query = ItemSubCategory::query();
+
         foreach ($request->search as $search)
         {
-            $query->where($search['column'], 'like', '%' . $search['value'] . '%');
+            if (empty($search['value'])) continue;
+
+            //$query->where($search['column'], 'like', '%' . $search['value'] . '%');
         }
 
         if ($request->data_format == 'select2')

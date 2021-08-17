@@ -33,6 +33,7 @@ Route::group(['middleware' => ['web', 'auth', 'tenant']], function() {
 
 		//item category routes
         Route::post('categories/search', [ItemCartegoryController::class, 'search'])->name('items.categories.search');
+        Route::post('sub-categories/search', [ItemSubCategoryController::class, 'search'])->name('items.sub-categories.search');
 
     });
 

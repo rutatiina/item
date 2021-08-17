@@ -162,6 +162,8 @@ class ItemCartegoryController extends Controller
         $query = ItemCategory::query();
         foreach ($request->search as $search)
         {
+            if (empty($search['value'])) continue;
+
             $query->where($search['column'], 'like', '%' . $search['value'] . '%');
         }
 
