@@ -152,6 +152,7 @@ class ItemCategoryService
                 foreach ($request->sub_categories as $sub_category)
                 {
                     $sub_categories[] = [
+                        'tenant_id' => $tenantId,
                         'name' => $sub_category['name'],
                         'description' => $sub_category['description'],
                     ];

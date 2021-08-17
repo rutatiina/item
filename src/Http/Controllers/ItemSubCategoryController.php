@@ -174,7 +174,7 @@ class ItemSubCategoryController extends Controller
         {
             if (empty($search['value'])) continue;
 
-            //$query->where($search['column'], 'like', '%' . $search['value'] . '%');
+            $query->where($search['column'], 'like', '%' . $search['value'] . '%');
         }
 
         if ($request->data_format == 'select2')
