@@ -360,7 +360,8 @@ trait ItemsVueSearchSelect
             DB::raw('selling_financial_account_code as financial_account_code'),
             DB::raw('selling_rate'),
             DB::raw('if (selling_tax_inclusive, \'inclusive\', \'exclusive\') as tax_method'),
-            'image_url'
+            'image_url',
+            'image_path'
         );
         $query->whereNotIn('type', ['cost_center']);
         $query->whereNotIn('status', ['deactivated']);
@@ -407,6 +408,7 @@ trait ItemsVueSearchSelect
                         'tax_method' => $item->tax_method,
                         'account_type' => @$item->account_type,
                         'image_url' => $item->image_url,
+                        'image_path' => $item->image_path,
                     ];
                 }
             }
