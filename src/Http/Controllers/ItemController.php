@@ -82,6 +82,9 @@ class ItemController extends Controller
         $attributes['images_presently'] = $attributes['images'];
         $attributes['images_deleted'] = [];
 
+        $attributes['sales_taxes'] = [];
+        $attributes['purchase_taxes'] = [];
+
         $data = [
             'pageTitle' => 'Create Item',
             'urlPost' => '/items', #required
@@ -138,6 +141,9 @@ class ItemController extends Controller
         $accountsKeyById = $accounts->keyBy('id');
 
         $item = Item::find($id);
+
+        $item->load('sales_taxes');
+        $item->load('purchase_taxes');
 
         $attributes = $item->toArray();
         $attributes['_method'] = 'PATCH';

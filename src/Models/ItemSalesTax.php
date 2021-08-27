@@ -6,13 +6,13 @@ use App\Scopes\TenantIdScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Item extends Model
+class ItemSalesTax extends Model
 {
     use SoftDeletes;
 
     protected $connection = 'tenant';
 
-    protected $table = 'rg_items';
+    protected $table = 'rg_item_sales_taxes';
 
     protected $primaryKey = 'id';
 
@@ -57,36 +57,14 @@ class Item extends Model
 
         //add the relationships
         //->Default is always a string and thus does not auto fill the vue select
-        $attributes['units'] = 1;
-        $attributes['selling_financial_account_code'] = config('financial-accounting.sales_revenue_code'); //Sales revenue
-        $attributes['billing_financial_account_code'] = config('financial-accounting.cost_of_sales_code'); //Cost of Sales
+        $attributes['sub_categories'] = [];
 
         return $attributes;
     }
 
-    public function getSellingRateAttribute($value)
+    public function item()
     {
-        return floatval($value);
-    }
-
-    public function getBillingRateAttribute($value)
-    {
-        return floatval($value);
-    }
-
-    public function images()
-    {
-        return $this->hasMany('Rutatiina\Item\Models\ItemImage', 'item_id', 'id');
-    }
-
-    public function sales_taxes()
-    {
-        return $this->hasMany('Rutatiina\Item\Models\ItemSalesTax', 'item_id', 'id');
-    }
-
-    public function purchase_taxes()
-    {
-        return $this->hasMany('Rutatiina\Item\Models\ItemPurchaseTax', 'item_id', 'id');
+        return $this->belongsTo('Rutatiina\Item\Models\Item', 'item_id', 'id');
     }
 
 
