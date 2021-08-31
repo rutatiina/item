@@ -28,7 +28,7 @@ class ItemService
         $attributes['selling_currency'] = Auth::user()->tenant->base_currency;
         $attributes['billing_currency'] = Auth::user()->tenant->base_currency;
         $attributes['image'] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
-        $attributes['imagePresently'] = $attributes['image'];
+        $attributes['image_presently'] = $attributes['image'];
         $attributes['images'] = (object)[
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
@@ -39,8 +39,11 @@ class ItemService
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
             '/template/l/global_assets/images/placeholders/placeholder.jpg',
         ];
-        $attributes['imagesPresently'] = $attributes['images'];
-        $attributes['imagesDeleted'] = [];
+        $attributes['images_presently'] = $attributes['images'];
+        $attributes['images_deleted'] = [];
+
+        $attributes['sales_taxes'] = [];
+        $attributes['purchase_taxes'] = [];
 
         return [
             'pageTitle' => 'Create Item',
@@ -77,8 +80,8 @@ class ItemService
             //'selling_tax_inclusive' => 'required',
             //'selling_description' => 'required', //not required
 
-            'billing_rate' => 'required',
-            'billing_currency' => 'required',
+            //'billing_rate' => 'required',
+            //'billing_currency' => 'required',
             //'billing_financial_account_code' => 'required',
             //'billing_tax_code' => 'required',
             //'billing_tax_inclusive' => 'required',
@@ -93,6 +96,11 @@ class ItemService
             'images5' => 'mimes:jpg,png,jpeg|max:2048|nullable',
             'images6' => 'mimes:jpg,png,jpeg|max:2048|nullable',
             'images7' => 'mimes:jpg,png,jpeg|max:2048|nullable',
+
+            'sales_taxes' => 'array',
+            'sales_taxes.*.code' => 'required',
+            'purchase_taxes' => 'array',
+            'purchase_taxes.*.code' => 'required',
         ];
 
         if ($update)
@@ -177,9 +185,12 @@ class ItemService
             $Item->billing_description = $request->billing_description;
             $Item->status = 'active';
 
-            $Item->image_name = $request->file('image')->getClientOriginalName();
-            $Item->image_path = (isset($image_path)) ? $image_path : null;
-            $Item->image_url = (isset($image_url)) ? $image_url : null;
+            if ($request->file('image'))
+            {
+                $Item->image_name = $request->file('image')->getClientOriginalName();
+                $Item->image_path = (isset($image_path)) ? $image_path : null;
+                $Item->image_url = (isset($image_url)) ? $image_url : null;
+            }
 
             $Item->save();
 
@@ -200,6 +211,39 @@ class ItemService
                     $ItemImage->save();
                 }
             }
+
+            //store sales_taxes
+            $salesTaxes = [];
+            if ($request->sales_taxes)
+            {
+                foreach ($request->sales_taxes as $salesTax)
+                {
+                    $salesTaxes[] = [
+                        'tenant_id' => $tenantId,
+                        //'project_id' => null,
+                        'tax_code' => $salesTax['code']
+                    ];
+                }
+
+                $Item->sales_taxes()->createMany($salesTaxes);
+            }
+
+            //store purchase_taxes
+            $purchaseTaxes = [];
+            if ($request->purchase_taxes)
+            {
+                foreach ($request->purchase_taxes as $purchaseTax)
+                {
+                    $purchaseTaxes[] = [
+                        'tenant_id' => $tenantId,
+                        //'project_id' => null,
+                        'tax_code' => $purchaseTax['code']
+                    ];
+                }
+
+                $Item->purchase_taxes()->createMany($purchaseTaxes);
+            }
+
 
             DB::connection('tenant')->commit();
 

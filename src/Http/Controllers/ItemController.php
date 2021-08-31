@@ -61,45 +61,7 @@ class ItemController extends Controller
             return view('l-limitless-bs4.layout_2-ltr-default.appVue');
         }
 
-        $Item = new Item;
-        $attributes = $Item->rgGetAttributes();
-
-        $attributes['type'] = 'product';
-        $attributes['selling_currency'] = Auth::user()->tenant->base_currency;
-        $attributes['billing_currency'] = Auth::user()->tenant->base_currency;
-        $attributes['image'] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
-        $attributes['image_presently'] = $attributes['image'];
-        $attributes['images'] = (object)[
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-        ];
-        $attributes['images_presently'] = $attributes['images'];
-        $attributes['images_deleted'] = [];
-
-        $attributes['sales_taxes'] = [];
-        $attributes['purchase_taxes'] = [];
-
-        $data = [
-            'pageTitle' => 'Create Item',
-            'urlPost' => '/items', #required
-            'currencies' => ClassesCurrencies::en_IN(),
-            'countries' => ClassesCountries::ungrouped(),
-            'taxes' => Tax::all(),
-            'accounts' => Account::all(),
-            'attributes' => $attributes,
-            'selectedSellingTax' => json_decode('{}'),
-            'selectedBillingTax' => json_decode('{}'),
-            'selectedSellingAccount' => json_decode('{}'),
-            'selectedBillingAccount' => json_decode('{}'),
-        ];
-
-        return $data;
+        return ItemService::create();
     }
 
     public function store(Request $request)

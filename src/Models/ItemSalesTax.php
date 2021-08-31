@@ -18,6 +18,8 @@ class ItemSalesTax extends Model
 
     protected $dates = ['deleted_at'];
 
+    protected $guarded = ['id'];
+
     /**
      * The "booting" method of the model.
      *
