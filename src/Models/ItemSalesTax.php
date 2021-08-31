@@ -29,7 +29,7 @@ class ItemSalesTax extends Model
     {
         parent::boot();
 
-        static::addGlobalScope(new TenantIdScope);
+        //static::addGlobalScope(new TenantIdScope);
     }
 
     public function rgGetAttributes()

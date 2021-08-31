@@ -225,7 +225,7 @@ class ItemService
                     ];
                 }
 
-                $Item->sales_taxes()->createMany($salesTaxes);
+                $Item->intermediate_sales_taxes()->createMany($salesTaxes);
             }
 
             //store purchase_taxes
@@ -241,7 +241,7 @@ class ItemService
                     ];
                 }
 
-                $Item->purchase_taxes()->createMany($purchaseTaxes);
+                $Item->intermediate_purchase_taxes()->createMany($purchaseTaxes);
             }
 
 

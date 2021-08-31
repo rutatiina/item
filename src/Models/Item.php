@@ -5,6 +5,7 @@ namespace Rutatiina\Item\Models;
 use App\Scopes\TenantIdScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Rutatiina\Tax\Models\Tax;
 
 class Item extends Model
 {
@@ -81,10 +82,34 @@ class Item extends Model
 
     public function sales_taxes()
     {
+        return $this->hasManyThrough(
+            Tax::class,
+            ItemSalesTax::class,
+            'item_id', // Foreign key on the ItemSalesTax table...
+            'code', // Foreign key on the Tax table...
+            'id', // Local key on the items table...
+            'tax_code' // Local key on the ItemSalesTax table...
+        );
+    }
+
+    public function intermediate_sales_taxes()
+    {
         return $this->hasMany('Rutatiina\Item\Models\ItemSalesTax', 'item_id', 'id');
     }
 
     public function purchase_taxes()
+    {
+        return $this->hasManyThrough(
+            Tax::class,
+            ItemPurchaseTax::class,
+            'item_id', // Foreign key on the ItemSalesTax table...
+            'code', // Foreign key on the Tax table...
+            'id', // Local key on the items table...
+            'tax_code' // Local key on the ItemSalesTax table...
+        );
+    }
+
+    public function intermediate_purchase_taxes()
     {
         return $this->hasMany('Rutatiina\Item\Models\ItemPurchaseTax', 'item_id', 'id');
     }
