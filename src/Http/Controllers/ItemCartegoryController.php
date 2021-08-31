@@ -124,35 +124,12 @@ class ItemCartegoryController extends Controller
 
     public function update($id, Request $request)
     {
-        $store = ItemService::update($id, $request);
-
-        if ($store)
-        {
-            return [
-                'status' => true,
-                'messages' => ['Item successfully Updated.']
-            ];
-        }
-        else
-        {
-            return [
-                'status' => true,
-                'messages' => ItemService::$errors
-            ];
-        }
+        //
     }
 
     public function destroy(Request $request)
     {
-        Item::whereIn('id', $request->ids)->delete();
-
-        $response = [
-            'status' => true,
-            'message' => count($request->ids) . ' Item(s) deleted.',
-            'ids' => $request->ids,
-        ];
-
-        return json_encode($response);
+        //
     }
 
     public function search(Request $request)
@@ -179,31 +156,16 @@ class ItemCartegoryController extends Controller
 
     public function datatables()
     {
-        $items = Item::query();
-        return Datatables::of($items->orderBy('name', 'asc'))->make(true);
+        //
     }
 
     public function deactivate($id, Request $request)
     {
-        Item::whereIn('id', $request->ids)->update(['status' => 'deactivated']);
-
-        $response = [
-            'status' => true,
-            'message' => count($request->ids) . ' Item(s) deactivated.'
-        ];
-
-        return json_encode($response);
+        //
     }
 
     public function activate(Request $request)
     {
-        Item::whereIn('id', $request->ids)->update(['status' => 'active']);
-
-        $response = [
-            'status' => true,
-            'message' => count($request->ids) . ' Item(s) activated.',
-        ];
-
-        return json_encode($response);
+        //
     }
 }

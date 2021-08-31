@@ -18,6 +18,7 @@ Route::group(['middleware' => ['web', 'auth', 'tenant']], function() {
 		Route::post('search', 'Rutatiina\Item\Http\Controllers\ItemController@search')->name('items.search');
 		Route::post('vue-search-select-sales', 'Rutatiina\Item\Http\Controllers\ItemController@VueSearchSelectSales');
 		Route::post('vue-pos', [ItemController::class, 'vuePos']);
+		Route::get('categorizations', [ItemController::class, 'categorizations']);
 		Route::post('import', 'Rutatiina\Item\Http\Controllers\ItemController@import')->name('items.import');
 		Route::post('deactivate', 'Rutatiina\Item\Http\Controllers\ItemController@deactivate')->name('items.deactivate');
 		Route::post('delete', 'Rutatiina\Item\Http\Controllers\ItemController@delete')->name('items.delete');

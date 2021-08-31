@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Rutatiina\Item\Models\ItemCategory;
 use Rutatiina\Item\Models\ItemImage;
 use Rutatiina\Item\Services\ItemService;
 use Rutatiina\Tax\Models\Tax;
@@ -415,5 +416,46 @@ class ItemController extends Controller
         ];
 
         return json_encode($response);
+    }
+
+    public function categorizations(Request $request)
+    {
+        $categorizations = [];
+
+        $query = ItemCategory::query();
+
+        if ($request->search)
+        {
+            foreach ($request->search as $search)
+            {
+                $query->where($search['column'], 'like', '%' . $search['value'] . '%');
+            }
+        }
+
+        $data = $query->get();
+        $data->load('sub_categories');
+
+        foreach ($data as $category)
+        {
+            $categorizations[] = [
+                'category_id' => $category->id,
+                'category_name' => $category->name,
+                'sub_category_id' => null,
+                'sub_category_name' => null,
+            ];
+
+            foreach ($category->sub_categories as $sub_category)
+            {
+                $categorizations[] = [
+                    'category_id' => $category->id,
+                    'category_name' => $category->name,
+                    'sub_category_id' => $sub_category->id,
+                    'sub_category_name' => $sub_category->name,
+                ];
+            }
+        }
+
+        return $categorizations;
+
     }
 }
