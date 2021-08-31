@@ -368,6 +368,9 @@ trait ItemsVueSearchSelect
 
         $items = $query->get();
 
+        $items->load('sales_taxes');
+        $items->load('purchase_taxes');
+
         //print_r($items); exit;
 
         //Extract the categories
@@ -379,7 +382,8 @@ trait ItemsVueSearchSelect
             return [];
         }
 
-        foreach ($items as $item) {
+        foreach ($items as $item)
+        {
             $types[] = (empty($item->account_type)) ? $item->type : $item->account_type;
         }
 
@@ -409,6 +413,8 @@ trait ItemsVueSearchSelect
                         'account_type' => @$item->account_type,
                         'image_url' => $item->image_url,
                         'image_path' => $item->image_path,
+                        'sales_taxes' => $item->sales_taxes,
+                        'purchase_taxes' => $item->purchase_taxes,
                     ];
                 }
             }
