@@ -107,6 +107,7 @@ class ItemController extends Controller
 
         $item->load('sales_taxes');
         $item->load('purchase_taxes');
+        $item->load('categorizations');
 
         $attributes = $item->toArray();
         $attributes['_method'] = 'PATCH';
@@ -439,20 +440,20 @@ class ItemController extends Controller
         {
             $categorizations[] = [
                 'id' => $category->id,
-                'category_id' => $category->id,
-                'category_name' => $category->name,
-                'sub_category_id' => null,
-                'sub_category_name' => null,
+                'item_category_id' => $category->id,
+                'item_category_name' => $category->name,
+                'item_sub_category_id' => null,
+                'item_sub_category_name' => null,
             ];
 
             foreach ($category->sub_categories as $sub_category)
             {
                 $categorizations[] = [
                     'id' => $category->id.'-'.$sub_category->id,
-                    'category_id' => $category->id,
-                    'category_name' => $category->name,
-                    'sub_category_id' => $sub_category->id,
-                    'sub_category_name' => $sub_category->name,
+                    'item_category_id' => $category->id,
+                    'item_category_name' => $category->name,
+                    'item_sub_category_id' => $sub_category->id,
+                    'item_sub_category_name' => $sub_category->name,
                 ];
             }
         }

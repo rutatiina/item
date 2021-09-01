@@ -114,5 +114,10 @@ class Item extends Model
         return $this->hasMany('Rutatiina\Item\Models\ItemPurchaseTax', 'item_id', 'id');
     }
 
+    public function categorizations()
+    {
+        return $this->hasMany('Rutatiina\Item\Models\ItemCategorization', 'item_id', 'id');
+    }
+
 
 }

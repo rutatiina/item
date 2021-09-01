@@ -245,6 +245,22 @@ class ItemService
                 $Item->intermediate_purchase_taxes()->createMany($purchaseTaxes);
             }
 
+            //store categorizations
+            $categorizations = [];
+            if ($request->categorizations)
+            {
+                foreach ($request->categorizations as $categorization)
+                {
+                    $categorizations[] = [
+                        'tenant_id' => $tenantId,
+                        'item_category_id' => $categorization['item_category_id'],
+                        'item_sub_category_id' => $categorization['item_sub_category_id'],
+                    ];
+                }
+
+                $Item->categorizations()->createMany($categorizations);
+            }
+
 
             DB::connection('tenant')->commit();
 
