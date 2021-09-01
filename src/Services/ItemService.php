@@ -44,6 +44,7 @@ class ItemService
 
         $attributes['sales_taxes'] = [];
         $attributes['purchase_taxes'] = [];
+        $attributes['categorizations'] = [];
 
         return [
             'pageTitle' => 'Create Item',

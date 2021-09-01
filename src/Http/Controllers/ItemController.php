@@ -438,6 +438,7 @@ class ItemController extends Controller
         foreach ($data as $category)
         {
             $categorizations[] = [
+                'id' => $category->id,
                 'category_id' => $category->id,
                 'category_name' => $category->name,
                 'sub_category_id' => null,
@@ -447,6 +448,7 @@ class ItemController extends Controller
             foreach ($category->sub_categories as $sub_category)
             {
                 $categorizations[] = [
+                    'id' => $category->id.'-'.$sub_category->id,
                     'category_id' => $category->id,
                     'category_name' => $category->name,
                     'sub_category_id' => $sub_category->id,
