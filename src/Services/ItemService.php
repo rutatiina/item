@@ -13,7 +13,10 @@ use Rutatiina\Classes\Countries as ClassesCountries;
 use Rutatiina\Classes\Currencies as ClassesCurrencies;
 use Rutatiina\FinancialAccounting\Models\Account;
 use Rutatiina\Item\Models\Item;
+use Rutatiina\Item\Models\ItemCategorization;
 use Rutatiina\Item\Models\ItemImage;
+use Rutatiina\Item\Models\ItemPurchaseTax;
+use Rutatiina\Item\Models\ItemSalesTax;
 use Rutatiina\Tax\Models\Tax;
 
 class ItemService
@@ -391,6 +394,69 @@ class ItemService
                     $ItemImage->image_path = 'storage/' . $file_storage_name;
                     $ItemImage->image_url = url('storage/' . $file_storage_name);
                     $ItemImage->save();
+                }
+            }
+
+            //update sales_taxes
+            if ($request->sales_taxes)
+            {
+                //delete records removed
+                $selectedSalesTaxes = collect($request->sales_taxes)->pluck('code')->values()->toArray();
+
+                ItemSalesTax::where('item_id', $item->id)
+                    ->whereNotIn('tax_code', $selectedSalesTaxes)
+                    ->delete();
+
+                foreach ($request->sales_taxes as $salesTax)
+                {
+                    $item->intermediate_sales_taxes()->firstOrCreate([
+                        'tenant_id' => $tenantId,
+                        //'project_id' => null,
+                        'tax_code' => $salesTax['code']
+                    ]);
+                }
+            }
+
+            //update purchase_taxes
+            if ($request->purchase_taxes)
+            {
+                //delete records removed
+                $selectedPurchaseTaxes = collect($request->purchase_taxes)->pluck('code')->values()->toArray();
+
+                ItemPurchaseTax::where('item_id', $item->id)
+                    ->whereNotIn('tax_code', $selectedPurchaseTaxes)
+                    ->delete();
+
+                foreach ($request->purchase_taxes as $purchaseTax)
+                {
+                    $item->intermediate_purchase_taxes()->firstOrCreate([
+                        'tenant_id' => $tenantId,
+                        //'project_id' => null,
+                        'tax_code' => $purchaseTax['code']
+                    ]);
+                }
+            }
+
+            //update categorizations
+            if ($request->categorizations)
+            {
+                //soft delete all previous records of Item Categorization
+                ItemCategorization::where('item_id', $item->id)->delete();
+
+                foreach ($request->categorizations as $categorization)
+                {
+                    //undelete the ones that are reselected
+                    ItemCategorization::withTrashed()
+                        ->where('item_id', $item->id)
+                        ->where('item_category_id', $categorization['item_category_id'])
+                        ->where('item_sub_category_id', $categorization['item_sub_category_id'])
+                        ->restore();
+
+                    $item->categorizations()->firstOrCreate([
+                        'tenant_id' => $tenantId,
+                        'item_category_id' => $categorization['item_category_id'],
+                        'item_sub_category_id' => $categorization['item_sub_category_id'],
+                    ]);
                 }
             }
 
