@@ -2,11 +2,14 @@
 
 namespace Rutatiina\Item\Traits;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Rutatiina\FinancialAccounting\Models\Account;
 use Rutatiina\Item\Models\Item;
+use Rutatiina\Item\Models\ItemCategory;
+use Rutatiina\Item\Models\ItemSubCategory;
 
 trait ItemsVueSearchSelect
 {
@@ -366,10 +369,22 @@ trait ItemsVueSearchSelect
         $query->whereNotIn('type', ['cost_center']);
         $query->whereNotIn('status', ['deactivated']);
 
+        if ($request->item_category)
+        {
+            $query->whereHas('categorizations', function (Builder $query) use ($request)
+            {
+                if ($request->item_category) $query->where('item_category_id', $request->item_category);
+                if ($request->item_sub_category) $query->where('item_sub_category_id', $request->item_sub_category);
+            });
+        }
+
         $items = $query->get();
 
         $items->load('sales_taxes');
         $items->load('purchase_taxes');
+
+        $itemCategory = ItemCategory::find($request->item_category);
+        $itemSubCategory = ItemSubCategory::find($request->item_sub_category);
 
         //print_r($items); exit;
 
@@ -378,8 +393,17 @@ trait ItemsVueSearchSelect
 
         //print_r($items); exit;
 
-        if ($items->isEmpty()) {
-            return [];
+        if ($items->isEmpty())
+        {
+            return [
+                'items' => [],
+                'item_category' => [
+                    'name' => null,
+                    'sub_category' => [
+                        'name' => null
+                    ],
+                ],
+            ];
         }
 
         foreach ($items as $item)
@@ -391,16 +415,16 @@ trait ItemsVueSearchSelect
 
         $response = [];
 
-        foreach ($types as $type) {
-
+        foreach ($types as $type)
+        {
             //$response = [];
 
-            foreach ($items as $item) {
-
+            foreach ($items as $item)
+            {
                 $checker = (empty($item->account_type)) ? $item->type : $item->account_type;
 
-                if ( preg_match('/'.$type.'/i', $checker)) {
-
+                if ( preg_match('/'.$type.'/i', $checker))
+                {
                     $response[] = [
                         'id' => $item->id,
                         'name' => $item->name,
@@ -422,7 +446,17 @@ trait ItemsVueSearchSelect
 
         //Delete the empty types
 
-        return array_values($response);
+        //return array_values($response);
+
+        return [
+            'items' => array_values($response),
+            'item_category' => [
+                'name' => optional($itemCategory)->name,
+                'sub_category' => [
+                    'name' => optional($itemSubCategory)->name
+                ],
+            ],
+        ];
     }
 
 }

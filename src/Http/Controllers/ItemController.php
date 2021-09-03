@@ -166,6 +166,7 @@ class ItemController extends Controller
 
     public function destroy()
     {
+        //
     }
 
     public function VueSearchSelectSales(Request $request)
