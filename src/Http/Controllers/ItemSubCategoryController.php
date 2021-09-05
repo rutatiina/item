@@ -167,6 +167,7 @@ class ItemSubCategoryController extends Controller
     public function search(Request $request)
     {
         //return $request;
+        $itemCategory = ItemCategory::find($request->item_category);
 
         $query = ItemSubCategory::query();
 
@@ -179,11 +180,21 @@ class ItemSubCategoryController extends Controller
 
         if ($request->data_format == 'select2')
         {
-            return $query->limit(100)->get();
+            return [
+                'item_category' => [
+                    'name' => $itemCategory->name,
+                ],
+                'item_sub_category' => $query->limit(100)->get()
+            ];
         }
         else
         {
-            return $query->paginate(10);
+            return [
+                'item_category' => [
+                    'name' => $itemCategory->name,
+                ],
+                'item_sub_category' => $query->paginate(10)
+            ];
         }
     }
 
