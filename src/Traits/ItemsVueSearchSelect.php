@@ -356,6 +356,7 @@ trait ItemsVueSearchSelect
         $query = Item::query();
         $query->select(
             'id',
+            'barcode',
             DB::raw('name'),
             DB::raw("'item' as type"),
             DB::raw('selling_currency as currency'),
@@ -427,6 +428,7 @@ trait ItemsVueSearchSelect
                 {
                     $response[] = [
                         'id' => $item->id,
+                        'barcode' => $item->barcode,
                         'name' => $item->name,
                         'type' => $item->type,
                         'currency' => $item->currency,

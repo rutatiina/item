@@ -169,6 +169,7 @@ class ItemService
 
             $Item->tenant_id = $tenantId;
             $Item->type = $request->type;
+            $Item->barcode = $request->barcode;
             $Item->name = $request->name;
             $Item->sku = $request->sku;
             $Item->inventory_tracking = $request->inventory_tracking;
@@ -342,6 +343,7 @@ class ItemService
 
             $item->updated_by = Auth::id();
             $item->type = $request->type;
+            $item->barcode = $request->barcode;
             $item->name = $request->name;
             $item->sku = $request->sku;
             $item->inventory_tracking = $request->inventory_tracking;

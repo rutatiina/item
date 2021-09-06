@@ -31,6 +31,7 @@ class CreateRgItemsTable extends Migration
             $table->string('type', 100);
             $table->string('name');
             $table->string('sku')->nullable();
+            $table->char('barcode', 128)->nullable()->index();
             $table->unsignedInteger('units')->default(1);
             $table->string('selling_currency', 3);
             $table->unsignedDecimal('selling_rate', 20, 5);
@@ -50,6 +51,7 @@ class CreateRgItemsTable extends Migration
             $table->string('image_name', 2048)->nullable();
             $table->string('image_path', 2048)->nullable();
             $table->string('image_url', 2048)->nullable();
+
         });
     }
 
