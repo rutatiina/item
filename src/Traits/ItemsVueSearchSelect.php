@@ -370,6 +370,11 @@ trait ItemsVueSearchSelect
         $query->whereNotIn('type', ['cost_center']);
         $query->whereNotIn('status', ['deactivated']);
 
+        if ($request->barcode)
+        {
+            $query->where('barcode', $request->barcode);
+        }
+
         if ($request->item_category)
         {
             $query->whereHas('categorizations', function (Builder $query) use ($request)
