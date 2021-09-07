@@ -375,6 +375,19 @@ trait ItemsVueSearchSelect
             $query->where('barcode', $request->barcode);
         }
 
+        if ($request->search)
+        {
+            $query->where('barcode', $request->barcode);
+            $query->where(function($q) use ($request)
+            {
+                $q->where('barcode', 'like', '%'.$request->search.'%');
+                $q->orWhere('name', 'like', '%'.$request->search.'%');
+                $q->orWhere('sku', 'like', '%'.$request->search.'%');
+                $q->orWhere('selling_description', 'like', '%'.$request->search.'%');
+                $q->orWhere('billing_description', 'like', '%'.$request->search.'%');
+            });
+        }
+
         if ($request->item_category)
         {
             $query->whereHas('categorizations', function (Builder $query) use ($request)
