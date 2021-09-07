@@ -377,7 +377,6 @@ trait ItemsVueSearchSelect
 
         if ($request->search)
         {
-            $query->where('barcode', $request->barcode);
             $query->where(function($q) use ($request)
             {
                 $q->where('barcode', 'like', '%'.$request->search.'%');
