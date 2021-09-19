@@ -2,7 +2,7 @@
 
 namespace Rutatiina\Item\Models;
 
-use App\Scopes\TenantIdScope;
+use Rutatiina\Tenant\Scopes\TenantIdScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Rutatiina\Tax\Models\Tax;
