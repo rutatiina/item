@@ -19,6 +19,10 @@ class ItemServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(__DIR__.'/resources/views', 'item');
         $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
+
+        $this->publishes([
+            __DIR__.'/resources/public' => public_path('storage/items'),
+        ], 'public');
     }
 
     /**
