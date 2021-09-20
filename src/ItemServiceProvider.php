@@ -22,7 +22,7 @@ class ItemServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/resources/public' => public_path('storage/items'),
-        ], 'public');
+        ], 'item-public');
     }
 
     /**
