@@ -21,8 +21,8 @@ class ItemServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
 
         $this->publishes([
-            __DIR__.'/resources/public' => public_path('storage/items'),
-        ], 'item-public');
+            __DIR__.'/resources/public' => public_path('storage'),
+        ], 'rutatiina/item');
     }
 
     /**
