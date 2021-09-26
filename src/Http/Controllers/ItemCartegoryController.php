@@ -39,7 +39,7 @@ class ItemCartegoryController extends Controller
 
         if (!FacadesRequest::wantsJson())
         {
-            return view('l-limitless-bs4.layout_2-ltr-default.appVue');
+            return view('ui.limitless::layout_2-ltr-default.appVue');
         }
 
         $itemCategories = ItemCategory::paginate($per_page);
@@ -54,7 +54,7 @@ class ItemCartegoryController extends Controller
         //load the vue version of the app
         if (!FacadesRequest::wantsJson())
         {
-            return view('l-limitless-bs4.layout_2-ltr-default.appVue');
+            return view('ui.limitless::layout_2-ltr-default.appVue');
         }
 
         $itemCategory = new ItemCategory;
@@ -104,7 +104,7 @@ class ItemCartegoryController extends Controller
         //load the vue version of the app
         if (!FacadesRequest::wantsJson())
         {
-            return view('l-limitless-bs4.layout_2-ltr-default.appVue');
+            return view('ui.limitless::layout_2-ltr-default.appVue');
         }
 
         $itemCategory = ItemCategory::find($id);
