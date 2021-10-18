@@ -149,9 +149,9 @@ class ItemService
         {
             $tenantId = Auth::user()->tenant->id;
 
-            $storage_path = '/items/' . date('Y-m');
+            $storage_path = 'items/' . date('Y-m');
 
-            $storage = Storage::disk('public_storage');
+            $storage = Storage::disk('public');
             if (!$storage->has($storage_path))
             {
                 $storage->makeDirectory($storage_path);
@@ -159,7 +159,7 @@ class ItemService
 
             if ($request->file('image'))
             {
-                $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('image'));
+                $file_storage_name = $storage->putFile($storage_path, $request->file('image'));
 
                 $image_path = 'storage/' . $file_storage_name;
                 $image_url = url('storage/' . $file_storage_name);
@@ -315,7 +315,7 @@ class ItemService
 
             $storage_path = '/items/' . date('Y-m');
 
-            $storage = Storage::disk('public_storage');
+            $storage = Storage::disk('public');
             if (!$storage->has($storage_path))
             {
                 $storage->makeDirectory($storage_path);

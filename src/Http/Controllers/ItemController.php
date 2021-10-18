@@ -67,6 +67,8 @@ class ItemController extends Controller
 
     public function store(Request $request)
     {
+        //return $request;
+
         $store = ItemService::store($request);
 
         if ($store)
@@ -111,7 +113,7 @@ class ItemController extends Controller
 
         $attributes = $item->toArray();
         $attributes['_method'] = 'PATCH';
-        $attributes['image'] = url($item->image_path);
+        $attributes['image'] = ($item->image_path) ? url($item->image_path) : '/template/l/global_assets/images/placeholders/placeholder.jpg';
         $attributes['image_presently'] = $attributes['image'];
 
         $itemImages = $item->images->keyBy('position')->toArray();
