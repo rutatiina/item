@@ -166,9 +166,22 @@ class ItemController extends Controller
         }
     }
 
-    public function destroy()
+    public function destroy($id, Request $request)
     {
-        //
+        if (ItemService::destroy($request->ids))
+        {
+            return [
+                'status' => true,
+                'messages' => [count($request->ids) . ' Item deleted.'],
+            ];
+        }
+        else
+        {
+            return [
+                'status' => false,
+                'messages' => ItemService::$errors
+            ];
+        }
     }
 
     public function VueSearchSelectSales(Request $request)
@@ -385,13 +398,13 @@ class ItemController extends Controller
         return json_encode($response);
     }
 
-    public function deactivate($id, Request $request)
+    public function deactivate(Request $request)
     {
         Item::whereIn('id', $request->ids)->update(['status' => 'deactivated']);
 
         $response = [
             'status' => true,
-            'message' => count($request->ids) . ' Item(s) deactivated.'
+            'messages' => [count($request->ids) . ' Item(s) deactivated.']
         ];
 
         return json_encode($response);
@@ -403,7 +416,7 @@ class ItemController extends Controller
 
         $response = [
             'status' => true,
-            'message' => count($request->ids) . ' Item(s) activated.',
+            'messages' => [count($request->ids) . ' Item(s) activated.'],
         ];
 
         return json_encode($response);
@@ -411,15 +424,20 @@ class ItemController extends Controller
 
     public function delete(Request $request)
     {
-        Item::whereIn('id', $request->ids)->delete();
-
-        $response = [
-            'status' => true,
-            'message' => count($request->ids) . ' Item(s) deleted.',
-            'ids' => $request->ids,
-        ];
-
-        return json_encode($response);
+        if (ItemService::destroy($request->ids))
+        {
+            return [
+                'status' => true,
+                'messages' => [count($request->ids) . ' Item(s) deleted.'],
+            ];
+        }
+        else
+        {
+            return [
+                'status' => false,
+                'messages' => ItemService::$errors
+            ];
+        }
     }
 
     public function categorizations(Request $request)
@@ -463,5 +481,14 @@ class ItemController extends Controller
 
         return $categorizations;
 
+    }
+
+    public function routes()
+    {
+        return [
+            'delete' => route('items.delete'),
+            'activate' => route('items.activate'),
+            'deactivate' => route('items.deactivate'),
+        ];
     }
 }

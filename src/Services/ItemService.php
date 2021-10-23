@@ -492,19 +492,114 @@ class ItemService
 
     }
 
-    public static function destroy($id)
+    public static function destroy($ids)
     {
         //start database transaction
         DB::connection('tenant')->beginTransaction();
 
         try
         {
-            $item = Item::findOrFail($id);
+            foreach ($ids as $id)
+            {
+                //deactivate the contact
+                $item = Item::find($id);
+                $item->status = 'deactivated';
+                $item->save();
 
-            //Delete affected relations
-            $item->images()->delete();
+                DB::connection('tenant')->commit();
 
-            $item->delete();
+                #ckeck if contact is attached to any sales transactions
+
+                //estimates
+                if (class_exists(\Rutatiina\Estimate\Models\EstimateItem::class) && \Rutatiina\Estimate\Models\EstimateItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Estimate and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //retainer invoices
+                if (class_exists(\Rutatiina\RetainerInvoice\Models\RetainerInvoiceItem::class) && \Rutatiina\RetainerInvoice\Models\RetainerInvoiceItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Retainer Invoice and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //sales orders
+                if (class_exists(\Rutatiina\SalesOrder\Models\SalesOrderItem::class) && \Rutatiina\SalesOrder\Models\SalesOrderItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Sales Order and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //invoices
+                if (class_exists(\Rutatiina\Invoice\Models\InvoiceItem::class) && \Rutatiina\Invoice\Models\InvoiceItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Invoice and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //payment received - transactions dont have item_id
+
+                //recurring invoices
+                if (class_exists(\Rutatiina\Invoice\Models\RecurringInvoiceItem::class) && \Rutatiina\Invoice\Models\RecurringInvoiceItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Recurring Invoice and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //credit notes
+                if (class_exists(\Rutatiina\CreditNote\Models\CreditNoteItem::class) && \Rutatiina\CreditNote\Models\CreditNoteItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Credit Note and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+
+                #ckeck if contact is attached to any purchases transactions
+
+                //expenses - transactions dont have item_id
+
+                //recurring expenses - transactions dont have item_id
+
+                //purchase orders
+                if (class_exists(\Rutatiina\PurchaseOrder\Models\PurchaseOrderItem::class) && \Rutatiina\PurchaseOrder\Models\PurchaseOrderItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Purchase Order and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //bills
+                if (class_exists(\Rutatiina\Bill\Models\BillItem::class) && \Rutatiina\Bill\Models\BillItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Bill and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //payment made - transactions dont have item_id
+
+                //recurring bill
+                if (class_exists(\Rutatiina\Bill\Models\RecurringBillItem::class) && \Rutatiina\Bill\Models\RecurringBillItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Recurring Bill and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //debit notes
+                if (class_exists(\Rutatiina\DebitNote\Models\DebitNoteItem::class) && \Rutatiina\DebitNote\Models\DebitNoteItem::where('item_id', $id)->first())
+                {
+                    self::$errors = ['Item is attached to an Debit Note and thus cannot be deleted but only deactivated.'];
+                    return  false;
+                }
+
+                //if all the bove conditions are passed: Delete the contact
+                $item->images()->delete(); //todo also delete the image files from storage
+                $item->sales_taxes()->delete();
+                $item->intermediate_sales_taxes()->delete();
+                $item->purchase_taxes()->delete();
+                $item->intermediate_purchase_taxes()->delete();
+                $item->categorizations()->delete();
+                $item->delete();
+            }
 
             DB::connection('tenant')->commit();
 
