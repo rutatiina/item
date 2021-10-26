@@ -492,6 +492,7 @@ class ItemCategoriesSeeder extends Seeder
                 $category = new ItemCategory;
                 $category->tenant_id = $tenant->id;
                 $category->name = $categoryName;
+                $category->status = 'active';
                 $category->save();
 
                 foreach ($subCategories as $subCategoryName)
@@ -500,6 +501,7 @@ class ItemCategoriesSeeder extends Seeder
                     $subCategory->tenant_id = $tenant->id;
                     $subCategory->item_category_id = $category->id;
                     $subCategory->name = $subCategoryName;
+                    $subCategory->status = 'active';
                     $subCategory->save();
                 }
             }
