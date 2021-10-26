@@ -403,7 +403,7 @@ class ItemService
             if ($request->sales_taxes)
             {
                 //delete records removed
-                $selectedSalesTaxes = collect($request->sales_taxes)->pluck('code')->values()->toArray();
+                $selectedSalesTaxes = collect($request->sales_taxes)->pluck('code')->values()->filter()->all();
 
                 ItemSalesTax::where('item_id', $item->id)
                     ->whereNotIn('tax_code', $selectedSalesTaxes)
@@ -428,7 +428,7 @@ class ItemService
             if ($request->purchase_taxes)
             {
                 //delete records removed
-                $selectedPurchaseTaxes = collect($request->purchase_taxes)->pluck('code')->values()->toArray();
+                $selectedPurchaseTaxes = collect($request->purchase_taxes)->pluck('code')->values()->filter()->all();
 
                 ItemPurchaseTax::where('item_id', $item->id)
                     ->whereNotIn('tax_code', $selectedPurchaseTaxes)
@@ -452,7 +452,7 @@ class ItemService
             //update categorizations
             if ($request->categorizations)
             {
-                $selectedCategorizationsIds = collect($request->categorizations)->pluck('id')->values()->toArray();
+                $selectedCategorizationsIds = collect($request->categorizations)->pluck('id')->values()->filter()->all();
 
                 //soft delete removed records of Item Categorization
                 ItemCategorization::where('item_id', $item->id)
