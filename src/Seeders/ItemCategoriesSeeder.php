@@ -4,6 +4,10 @@ namespace Rutatiina\Item\Seeders;
 
 use Illuminate\Database\Seeder;
 use Rutatiina\Item\Models\Item;
+use Rutatiina\Item\Models\ItemCategorization;
+use Rutatiina\Item\Models\ItemCategory;
+use Rutatiina\Item\Models\ItemSubCategory;
+use Rutatiina\Tenant\Models\Tenant;
 
 class ItemCategoriesSeeder extends Seeder
 {
@@ -14,6 +18,12 @@ class ItemCategoriesSeeder extends Seeder
      */
     public function run()
     {
+        ItemCategory::truncate();
+        ItemSubCategory::truncate();
+        ItemCategorization::truncate();
+
+        $tenants = Tenant::all();
+
         $categories = [
             'Food' => [
                 'Grain Products',
@@ -474,5 +484,25 @@ class ItemCategoriesSeeder extends Seeder
                 'Women\'s panties',
             ],
         ];
+
+        foreach ($tenants as $tenant)
+        {
+            foreach ($categories as $categoryName => $subCategories)
+            {
+                $category = new ItemCategory;
+                $category->tenant_id = $tenant->id;
+                $category->name = $categoryName;
+                $category->save();
+
+                foreach ($subCategories as $subCategoryName)
+                {
+                    $subCategory = new ItemSubCategory;
+                    $subCategory->tenant_id = $tenant->id;
+                    $subCategory->item_category_id = $category->id;
+                    $subCategory->name = $subCategoryName;
+                    $subCategory->save();
+                }
+            }
+        }
     }
 }
