@@ -31,6 +31,12 @@ Route::group(['middleware' => ['web', 'auth', 'tenant']], function() {
 
 		//item category routes
         Route::post('categories/search', [ItemCartegoryController::class, 'search'])->name('items.categories.search');
+        Route::patch('categories/deactivate', [ItemCartegoryController::class, 'deactivate'])->name('items.categories.deactivate');
+        Route::patch('categories/activate', [ItemCartegoryController::class, 'activate'])->name('items.categories.activate');
+        Route::delete('categories/delete', [ItemCartegoryController::class, 'delete'])->name('items.categories.delete');
+        Route::post('categories/routes', [ItemCartegoryController::class, 'routes'])->name('items.categories.routes');
+
+        //item sub-category routes
         Route::post('sub-categories/search', [ItemSubCategoryController::class, 'search'])->name('items.sub-categories.search');
 
     });

@@ -66,8 +66,18 @@ class ItemSubCategory extends Model
 
     public function categories()
     {
-        return $this->belongsTo('Rutatiina\Item\Models\ItemCategory', 'item_category_id', 'id');
+        return $this->belongsTo(ItemCategory::class, 'item_category_id', 'id');
     }
 
+    public function categorizations()
+    {
+        return $this->hasMany(ItemCategorization::class, 'item_sub_category_id', 'id');
+    }
+
+    //returns the number of time the sub-category is in use
+    public function getUsagesAttribute()
+    {
+        return ItemCategorization::where('item_sub_category_id', $this->id)->count();
+    }
 
 }

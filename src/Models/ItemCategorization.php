@@ -44,7 +44,7 @@ class ItemCategorization extends Model
 
     public function getItemSubCategoryNameAttribute()
     {
-        return ItemSubCategory::find($this->item_sub_category_id)->name;
+        return optional(ItemSubCategory::find($this->item_sub_category_id))->name;
     }
 
 }

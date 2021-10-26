@@ -418,6 +418,11 @@ class ItemService
                     ]);
                 }
             }
+            else
+            {
+                //delete all sales taxes info since items is being edited and NO $request->sales_taxes info posted
+                ItemSalesTax::where('item_id', $item->id)->delete();
+            }
 
             //update purchase_taxes
             if ($request->purchase_taxes)
@@ -438,12 +443,21 @@ class ItemService
                     ]);
                 }
             }
+            else
+            {
+                //delete all purchas taxes info since items is being edited and NO $request->purchase_taxes info posted
+                ItemPurchaseTax::where('item_id', $item->id)->delete();
+            }
 
             //update categorizations
             if ($request->categorizations)
             {
-                //soft delete all previous records of Item Categorization
-                ItemCategorization::where('item_id', $item->id)->delete();
+                $selectedCategorizationsIds = collect($request->categorizations)->pluck('id')->values()->toArray();
+
+                //soft delete removed records of Item Categorization
+                ItemCategorization::where('item_id', $item->id)
+                    ->whereNotIn('id', $selectedCategorizationsIds)
+                    ->delete();
 
                 foreach ($request->categorizations as $categorization)
                 {
@@ -460,6 +474,10 @@ class ItemService
                         'item_sub_category_id' => $categorization['item_sub_category_id'],
                     ]);
                 }
+            }
+            else
+            {
+                ItemCategorization::where('item_id', $item->id)->delete();
             }
 
             DB::connection('tenant')->commit();

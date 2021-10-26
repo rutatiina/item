@@ -13,8 +13,10 @@ use Rutatiina\Globals\Services\Countries as ClassesCountries;
 use Rutatiina\Globals\Services\Currencies as ClassesCurrencies;
 use Rutatiina\FinancialAccounting\Models\Account;
 use Rutatiina\Item\Models\Item;
+use Rutatiina\Item\Models\ItemCategorization;
 use Rutatiina\Item\Models\ItemCategory;
 use Rutatiina\Item\Models\ItemImage;
+use Rutatiina\Item\Models\ItemSubCategory;
 use Rutatiina\Tax\Models\Tax;
 
 class ItemCategoryService
@@ -84,11 +86,18 @@ class ItemCategoryService
                 //'unique:tenant.rg_items',
                 Rule::unique('Rutatiina\Item\Models\ItemCategory')->ignore($request->id, 'id')
             ];
+
             $rules['sub_categories.*.name'] = [
                 'nullable',
                 'string',
                 'max:255',
-                Rule::unique('Rutatiina\Item\Models\ItemSubCategory')->ignore($request->id, 'id')
+                /*Rule::unique('Rutatiina\Item\Models\ItemSubCategory')->where(function ($query) use ($request) {
+
+                    //get the id's of the sub-categories retained
+                    $retainedSubCategoriesIds = collect($request->sub_categories)->pluck('id')->values()->toArray();
+
+                    return $query->whereNotIn('id', $retainedSubCategoriesIds);
+                })*/
             ];
         }
 
@@ -118,7 +127,7 @@ class ItemCategoryService
             $tenantId = Auth::user()->tenant->id;
 
 
-            $storage_path = '/items/' . date('Y-m');
+            $storage_path = '/items/categiory/' . date('Y-m');
 
             $storage = Storage::disk('public_storage');
             if (!$storage->has($storage_path))
@@ -208,7 +217,8 @@ class ItemCategoryService
         {
             $tenantId = Auth::user()->tenant->id;
 
-            $storage_path = '/items/' . date('Y-m');
+
+            $storage_path = '/items/categiory/' . date('Y-m');
 
             $storage = Storage::disk('public_storage');
             if (!$storage->has($storage_path))
@@ -216,126 +226,124 @@ class ItemCategoryService
                 $storage->makeDirectory($storage_path);
             }
 
+            $itemCategory = ItemCategory::find($id);
+            //$itemCategory->tenant_id = $tenantId;
+            $itemCategory->name = $request->name;
+            $itemCategory->description = $request->description;
+            $itemCategory->status = 'active';
+
             if ($request->file('image'))
             {
                 $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('image'));
-
                 $image_path = 'storage/' . $file_storage_name;
                 $image_url = url('storage/' . $file_storage_name);
+
+                $itemCategory->image_name = $request->file('image')->getClientOriginalName();
+                $itemCategory->image_path = (isset($image_path)) ? $image_path : null;
+                $itemCategory->image_url = (isset($image_url)) ? $image_url : null;
             }
 
-            //check and delete the profile image if scheduled for
-            if (in_array('profile', $request->input('images_deleted', [])))
+            $itemCategory->save();
+
+            $sub_categories = [];
+
+            if ($request->sub_categories && count($request->sub_categories) > 0)
             {
-                Item::where('id', $id)->update([
-                    'image_name' => null,
-                    'image_path' => null,
-                    'image_url' => null
-                ]);
-            }
+                //get the id's of the sub-categories retained
+                //the empty value caused by a new sub category was resulting in deleting failing... thuse the ->filter()->all() to fix that
+                $retainedSubCategoriesIds = collect($request->sub_categories)->pluck('id')->values()->filter()->all();
 
-            $item = Item::find($id);
+                //delete the subcategories that have been deleted
+                ItemSubCategory::where('item_category_id', $itemCategory->id)
+                    ->whereNotIn('id', $retainedSubCategoriesIds)
+                    ->delete();
 
-            $item->updated_by = Auth::id();
-            $item->type = $request->type;
-            $item->name = $request->name;
-            $item->sku = $request->sku;
-            $item->inventory_tracking = $request->inventory_tracking;
-            $item->units = (is_numeric($request->units)) ? $request->units : 1;
-
-            $item->selling_rate = floatval($request->selling_rate);
-            $item->selling_currency = $request->selling_currency;
-            $item->selling_financial_account_code = $request->selling_financial_account_code;
-            $item->selling_tax_code = (empty($request->selling_tax_code)) ? null : $request->selling_tax_code;
-            $item->selling_tax_inclusive = $request->selling_tax_inclusive;
-            $item->selling_description = $request->selling_description;
-
-            $item->billing_rate = floatval($request->billing_rate);
-            $item->billing_currency = $request->billing_currency;
-            $item->billing_financial_account_code = $request->billing_financial_account_code;
-            $item->billing_tax_code = (empty($request->billing_tax_code)) ? null : $request->billing_tax_code;
-            $item->billing_tax_inclusive = $request->billing_tax_inclusive;
-            $item->billing_description = $request->billing_description;
-
-            if ($request->file('image'))
-            {
-                $item->image_name = $request->file('image')->getClientOriginalName();
-                $item->image_path = (isset($image_path)) ? $image_path : null;
-                $item->image_url = (isset($image_url)) ? $image_url : null;
-            }
-
-            $item->save();
-
-            //delete the images that are sheduled for delete
-            foreach ($request->input('images_deleted', []) as $imagePosition)
-            {
-                if (is_numeric($imagePosition))
+                //note the *upsert* method of a collection turned out to be the wrong method to use
+                foreach ($request->sub_categories as $sub_category)
                 {
-                    ItemImage::where('position', $imagePosition)->delete();
+                    ItemSubCategory::updateOrCreate(
+                        [
+                            'id' => @$sub_category['id'],
+                            'tenant_id' => $tenantId, //since there will be creating involved, this column is a must have
+                            'item_category_id' => $itemCategory->id,
+                        ],
+                        [
+                            'name' => $sub_category['name'],
+                            'description' => $sub_category['description']
+                        ]
+                    );
                 }
+
+
+                $itemCategory->sub_categories()->createMany($sub_categories);
             }
-
-            for ($i = 0; $i <= 7; $i++)
+            else
             {
-                if ($request->file('images' . $i))
-                {
-                    $file_storage_name = $storage->putFile('/' . $storage_path, $request->file('images' . $i));
-
-                    //save the item images
-                    $ItemImage = new ItemImage;
-                    $ItemImage->tenant_id = $tenantId;
-                    $ItemImage->item_id = $item->id;
-                    $ItemImage->position = $i;
-                    $ItemImage->image_name = $request->file('images' . $i)->getClientOriginalName();
-                    $ItemImage->image_path = 'storage/' . $file_storage_name;
-                    $ItemImage->image_url = url('storage/' . $file_storage_name);
-                    $ItemImage->save();
-                }
+                //delete the subcategories that have been deleted
+                ItemSubCategory::where('item_category_id', $itemCategory->id)
+                    ->doesntHave('categorizations')
+                    ->delete();
             }
 
             DB::connection('tenant')->commit();
 
-            return $item;
+            return $itemCategory;
 
         }
         catch (\Throwable $e)
         {
             DB::connection('tenant')->rollBack();
 
-            Log::critical('Fatal Internal Error: Failed to update item in database');
+            Log::critical('Fatal Internal Error: Failed to update item category to database');
             Log::critical($e);
 
             //print_r($e); exit;
             if (App::environment('local'))
             {
-                self::$errors[] = 'Error: Failed to update item in database.';
+                self::$errors[] = 'Error: Failed to update item category to database.';
                 self::$errors[] = 'File: ' . $e->getFile();
                 self::$errors[] = 'Line: ' . $e->getLine();
                 self::$errors[] = 'Message: ' . $e->getMessage();
             }
             else
             {
-                self::$errors[] = 'Fatal Internal Error: Failed to update item in database.';
+                self::$errors[] = 'Fatal Internal Error: Failed to update item category to database.';
             }
 
             return false;
         }
+        //*/
 
     }
 
-    public static function destroy($id)
+    public static function destroy($ids)
     {
         //start database transaction
         DB::connection('tenant')->beginTransaction();
 
         try
         {
-            $item = Item::findOrFail($id);
+            foreach ($ids as $id)
+            {
+                //deactivate the category
+                $itemCategory = ItemCategory::findOrFail($id);
+                $itemCategory->status = 'deactivated';
+                $itemCategory->save();
 
-            //Delete affected relations
-            $item->images()->delete();
+                DB::connection('tenant')->commit();
 
-            $item->delete();
+                //check if the category is has any items tagged to it
+                if (class_exists(ItemCategorization::class) && ItemCategorization::where('item_category_id', $id)->first())
+                {
+                    self::$errors = ['Category has items attached to it and thus cannot be deleted but only deactivated.'];
+                    return false;
+                }
+
+                //Delete affected relations
+                $itemCategory->sub_categories()->delete();
+
+                $itemCategory->delete();
+            }
 
             DB::connection('tenant')->commit();
 
@@ -346,20 +354,20 @@ class ItemCategoryService
         {
             DB::connection('tenant')->rollBack();
 
-            Log::critical('Fatal Internal Error: Failed to delete item from database');
+            Log::critical('Fatal Internal Error: Failed to delete item category from database');
             Log::critical($e);
 
             //print_r($e); exit;
             if (App::environment('local'))
             {
-                self::$errors[] = 'Error: Failed to delete item from database.';
+                self::$errors[] = 'Error: Failed to delete item category from database.';
                 self::$errors[] = 'File: ' . $e->getFile();
                 self::$errors[] = 'Line: ' . $e->getLine();
                 self::$errors[] = 'Message: ' . $e->getMessage();
             }
             else
             {
-                self::$errors[] = 'Fatal Internal Error: Failed to delete item from database.';
+                self::$errors[] = 'Fatal Internal Error: Failed to delete item category from database.';
             }
 
             return false;

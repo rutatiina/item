@@ -109,10 +109,11 @@ class ItemCartegoryController extends Controller
 
         $itemCategory = ItemCategory::find($id);
         $itemCategory->load('sub_categories');
+        $itemCategory->sub_categories->append('usages');
 
         $attributes = $itemCategory->toArray();
         $attributes['_method'] = 'PATCH';
-        $attributes['image'] = url($itemCategory->image_path);
+        $attributes['image'] = $itemCategory->image_path ? url($itemCategory->image_path) : '';
         $attributes['image_presently'] = $attributes['image'];
 
         return [
@@ -124,7 +125,24 @@ class ItemCartegoryController extends Controller
 
     public function update($id, Request $request)
     {
-        //
+        //return $request;
+
+        $store = ItemCategoryService::update($id, $request);
+
+        if ($store)
+        {
+            return [
+                'status' => true,
+                'messages' => ['Item category successfully updated.']
+            ];
+        }
+        else
+        {
+            return [
+                'status' => false,
+                'messages' => ItemCategoryService::$errors
+            ];
+        }
     }
 
     public function destroy(Request $request)
@@ -159,13 +177,54 @@ class ItemCartegoryController extends Controller
         //
     }
 
-    public function deactivate($id, Request $request)
+    public function deactivate(Request $request)
     {
-        //
+        ItemCategory::whereIn('id', $request->ids)->update(['status' => 'deactivated']);
+
+        $response = [
+            'status' => true,
+            'messages' => [count($request->ids) . ' Item '. ((count($request->ids)>1) ? 'categories' : 'category') . ' deactivated.'],
+        ];
+
+        return json_encode($response);
     }
 
     public function activate(Request $request)
     {
-        //
+        ItemCategory::whereIn('id', $request->ids)->update(['status' => 'active']);
+
+        $response = [
+            'status' => true,
+            'messages' => [count($request->ids) . ' Item '. ((count($request->ids)>1) ? 'categories' : 'category') . ' activated.'],
+        ];
+
+        return json_encode($response);
+    }
+
+    public function delete(Request $request)
+    {
+        if (ItemCategoryService::destroy($request->ids))
+        {
+            return [
+                'status' => true,
+                'messages' => [count($request->ids) . ' Item '. ((count($request->ids)>1) ? 'categories' : 'category') . ' deleted.'],
+            ];
+        }
+        else
+        {
+            return [
+                'status' => false,
+                'messages' => ItemCategoryService::$errors
+            ];
+        }
+    }
+
+    public function routes()
+    {
+        return [
+            'delete' => route('items.categories.delete'),
+            'activate' => route('items.categories.activate'),
+            'deactivate' => route('items.categories.deactivate'),
+        ];
     }
 }
