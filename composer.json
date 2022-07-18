@@ -12,9 +12,9 @@
     "minimum-stability": "beta",
     "require": {
         "laravel/framework": "^8.0",
-        "rutatiina/tenant": "*",
-        "rutatiina/tax": "*",
-        "rutatiina/contact": "*"
+        "rutatiina/tenant": "dev-main",
+        "rutatiina/tax": "dev-main",
+        "rutatiina/contact": "dev-main"
     },
     "autoload": {
         "psr-4": {
