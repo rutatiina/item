@@ -2,10 +2,12 @@
 
 namespace Rutatiina\Item\Models;
 
-use Rutatiina\Tenant\Scopes\TenantIdScope;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Rutatiina\Tax\Models\Tax;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
+use Rutatiina\Inventory\Models\Inventory;
+use Rutatiina\Tenant\Scopes\TenantIdScope;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Item extends Model
 {
@@ -117,6 +119,17 @@ class Item extends Model
     public function categorizations()
     {
         return $this->hasMany('Rutatiina\Item\Models\ItemCategorization', 'item_id', 'id');
+    }
+
+    public function getInventoryAttribute()
+    {
+        //return "{$this->first_name} {$this->last_name}";
+        return Inventory::where('item_id', $this->id)
+        ->whereIn( 'date', function($query) {
+            $query->selectRaw('MAX(date)')->where('item_id', $this->id)->from('rg_inventory')->groupBy('batch');
+        })
+        ->orderBy('date', 'desc')
+        ->get();
     }
 
 
