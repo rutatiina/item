@@ -172,7 +172,7 @@ class ItemService
             $Item->barcode = $request->barcode;
             $Item->name = $request->name;
             $Item->sku = $request->sku;
-            $Item->inventory_tracking = $request->inventory_tracking;
+            $Item->inventory_tracking = ($request->inventory_tracking == 'true') ? 1 : 0;
             $Item->units = (is_numeric($request->units)) ? $request->units : 1;
 
             $Item->selling_rate = floatval($request->selling_rate);
@@ -346,7 +346,7 @@ class ItemService
             $item->barcode = $request->barcode;
             $item->name = $request->name;
             $item->sku = $request->sku;
-            $item->inventory_tracking = $request->inventory_tracking;
+            $item->inventory_tracking = ($request->inventory_tracking == 'true') ? 1 : 0;
             $item->units = (is_numeric($request->units)) ? $request->units : 1;
 
             $item->selling_rate = floatval($request->selling_rate);
