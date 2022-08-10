@@ -132,5 +132,10 @@ class Item extends Model
         ->get();
     }
 
+    public function inventory_records()
+    {
+        return $this->hasMany(Inventory::class, 'item_id', 'id');
+    }
+
 
 }

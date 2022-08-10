@@ -21,6 +21,7 @@ use Rutatiina\Globals\Services\Currencies as ClassesCurrencies;
 use Rutatiina\Item\Traits\ItemsVueSearchSelect;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
 
 class ItemController extends Controller
 {
@@ -49,8 +50,25 @@ class ItemController extends Controller
 
         $Item = Item::paginate($per_page);
 
+        $query = Item::query();
+
+        if ($request->search)
+        {
+            $query->where(function($q) use ($request) {
+                $q->where('type', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('name', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('sku', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('barcode', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('selling_description', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('billing_description', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+            });
+        }
+
+        $query->latest();
+        $Items = $query->paginate($per_page);
+
         return [
-            'tableData' => $Item
+            'tableData' => $Items
         ];
     }
 
