@@ -163,7 +163,7 @@ class ItemCategoryService
                     $sub_categories[] = [
                         'tenant_id' => $tenantId,
                         'name' => $sub_category['name'],
-                        'description' => $sub_category['description'],
+                        //'description' => $sub_category['description'], //$sub_category['description'] is not set by the form
                     ];
                 }
 

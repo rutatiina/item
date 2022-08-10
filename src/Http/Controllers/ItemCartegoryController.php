@@ -3,25 +3,11 @@
 namespace Rutatiina\Item\Http\Controllers;
 
 use Illuminate\Support\Facades\Request as FacadesRequest;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Rutatiina\Item\Models\ItemCategory;
-use Rutatiina\Item\Models\ItemImage;
 use Rutatiina\Item\Services\ItemCategoryService;
-use Rutatiina\Item\Services\ItemService;
-use Rutatiina\Tax\Models\Tax;
-use Rutatiina\FinancialAccounting\Models\Account;
-use Rutatiina\Item\Models\Item;
-use Rutatiina\Globals\Services\Countries as ClassesCountries;
-use Rutatiina\Globals\Services\Currencies as ClassesCurrencies;
-use Rutatiina\Item\Traits\ItemsVueSearchSelect;
-use Yajra\DataTables\Facades\DataTables;
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
 
 class ItemCartegoryController extends Controller
 {
@@ -42,7 +28,21 @@ class ItemCartegoryController extends Controller
             return view('ui.limitless::layout_2-ltr-default.appVue');
         }
 
-        $itemCategories = ItemCategory::paginate($per_page);
+        $query = ItemCategory::query();
+
+        if ($request->search)
+        {
+            $query->where(function($q) use ($request) {
+                $columns = (new ItemCategory)->getSearchableColumns();
+                foreach($columns as $column)
+                {
+                    $q->orWhere($column, 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                }
+            });
+        }
+
+        $query->latest();
+        $itemCategories = $query->paginate($per_page);
 
         return [
             'tableData' => $itemCategories

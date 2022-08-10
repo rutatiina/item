@@ -5,6 +5,7 @@ namespace Rutatiina\Item\Models;
 use Rutatiina\Tenant\Scopes\TenantIdScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 
 class ItemCategory extends Model
 {
@@ -65,6 +66,11 @@ class ItemCategory extends Model
     public function sub_categories()
     {
         return $this->hasMany('Rutatiina\Item\Models\ItemSubCategory', 'item_category_id', 'id');
+    }
+
+    public function getSearchableColumns()
+    {
+        return Schema::connection('tenant')->getColumnListing($this->table);
     }
 
 
