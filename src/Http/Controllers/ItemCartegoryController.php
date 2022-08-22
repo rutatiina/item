@@ -13,10 +13,10 @@ class ItemCartegoryController extends Controller
 {
     public function __construct()
     {
-        //$this->middleware('permission:items.view');
-        //$this->middleware('permission:items.create', ['only' => ['create', 'store']]);
-        //$this->middleware('permission:items.update', ['only' => ['edit', 'update']]);
-        //$this->middleware('permission:items.delete', ['only' => ['destroy']]);
+        $this->middleware('permission:items.category.view');
+        $this->middleware('permission:items.category.create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:items.category.update', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:items.category.delete', ['only' => ['destroy']]);
     }
 
     public function index(Request $request)
