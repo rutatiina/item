@@ -30,17 +30,17 @@ class ItemCategoryService
         $attributes['type'] = 'product';
         $attributes['selling_currency'] = Auth::user()->tenant->base_currency;
         $attributes['billing_currency'] = Auth::user()->tenant->base_currency;
-        $attributes['image'] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
+        $attributes['image'] = '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg';
         $attributes['imagePresently'] = $attributes['image'];
         $attributes['images'] = (object)[
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
-            '/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg',
+            '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg',
         ];
         $attributes['imagesPresently'] = $attributes['images'];
         $attributes['imagesDeleted'] = [];

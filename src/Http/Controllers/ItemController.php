@@ -131,7 +131,7 @@ class ItemController extends Controller
 
         $attributes = $item->toArray();
         $attributes['_method'] = 'PATCH';
-        $attributes['image'] = ($item->image_path) ? url($item->image_path) : '/template/l/global_assets/images/placeholders/placeholder.jpg';
+        $attributes['image'] = ($item->image_path) ? url($item->image_path) : '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg';
         $attributes['image_presently'] = $attributes['image'];
 
         $itemImages = $item->images->keyBy('position')->toArray();
@@ -145,7 +145,7 @@ class ItemController extends Controller
             }
             else
             {
-                $attributesImages[$i] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
+                $attributesImages[$i] = '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg';
             }
         }
 

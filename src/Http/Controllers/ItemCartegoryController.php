@@ -60,7 +60,7 @@ class ItemCartegoryController extends Controller
         $itemCategory = new ItemCategory;
         $attributes = $itemCategory->rgGetAttributes();
 
-        $attributes['image'] = '/template/l/global_assets/images/placeholders/placeholder.jpg';
+        $attributes['image'] = '/web/assets/template/l/global_assets/images/placeholders/placeholder.jpg';
         $attributes['image_presently'] = $attributes['image'];
 
         $data = [

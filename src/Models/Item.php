@@ -21,6 +21,10 @@ class Item extends Model
 
     protected $dates = ['deleted_at'];
 
+    protected $casts = [
+        'inventory_tracking' => 'integer',
+    ];
+
     /**
      * The "booting" method of the model.
      *

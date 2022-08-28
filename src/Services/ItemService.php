@@ -73,8 +73,22 @@ class ItemService
     {
         $rules = [
             'type' => 'required',
-            'name' => ['required', 'string', 'max:255', 'unique:Rutatiina\Item\Models\Item'],
-            'sku' => ['nullable', 'string', 'max:255', 'unique:Rutatiina\Item\Models\Item'],
+            'name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('Rutatiina\Item\Models\Item')
+                ->where(function ($query) {
+                    return $query->where('tenant_id', session('tenant_id'));
+                })
+            ],
+            'sku' => [
+                'nullable', 
+                'string', 
+                'max:255',
+                Rule::unique('Rutatiina\Item\Models\Item')
+                ->where(function ($query) {
+                    return $query->where('tenant_id', session('tenant_id'));
+                })
+            ],
             'units' => 'required|numeric',
 
             'selling_rate' => 'required|numeric',
@@ -114,13 +128,21 @@ class ItemService
                 'string',
                 'max:255',
                 //'unique:tenant.rg_items',
-                Rule::unique('Rutatiina\Item\Models\Item')->ignore($request->id, 'id')
+                Rule::unique('Rutatiina\Item\Models\Item')
+                ->where(function ($query) {
+                    return $query->where('tenant_id', session('tenant_id'));
+                })
+                ->ignore($request->id, 'id')
             ];
             $rules['sku'] = [
                 'nullable',
                 'string',
                 'max:255',
-                Rule::unique('Rutatiina\Item\Models\Item')->ignore($request->id, 'id')
+                Rule::unique('Rutatiina\Item\Models\Item')
+                ->where(function ($query) {
+                    return $query->where('tenant_id', session('tenant_id'));
+                })
+                ->ignore($request->id, 'id')
             ];
         }
 
