@@ -29,10 +29,12 @@ trait ItemsVueSearchSelect
             DB::raw('selling_financial_account_code as financial_account_code'),
             DB::raw('selling_rate'),
             DB::raw('if (selling_tax_inclusive, \'inclusive\', \'exclusive\') as tax_method'),
-            'image_url'
+            'image_url',
+            'inventory_tracking'
         );
         $query->whereNotIn('type', ['cost_center']);
         $query->whereNotIn('status', ['deactivated']);
+        $query->orderBy('name', 'asc');
 
         $items = $query->get();
 
@@ -68,6 +70,7 @@ trait ItemsVueSearchSelect
             'tax_method' => '',
             'account_type' => '',
             'image_url' => '',
+            'inventory_tracking' => 0
         ];
 
         foreach ($types as $type) {
@@ -91,6 +94,7 @@ trait ItemsVueSearchSelect
                         'tax_method' => $item->tax_method,
                         'account_type' => @$item->account_type,
                         'image_url' => $item->image_url,
+                        'inventory_tracking' => $item->inventory_tracking
                     ];
                 }
             }
@@ -113,7 +117,8 @@ trait ItemsVueSearchSelect
             DB::raw('billing_financial_account_code as financial_account_code'),
             DB::raw('billing_rate'),
             DB::raw('if (billing_tax_inclusive, \'inclusive\', \'exclusive\') as tax_method'),
-            'image_url'
+            'image_url',
+            'inventory_tracking'
         );
         $query->whereIn('type', ['cost_center']);
         $query->whereNotIn('status', ['deactivated']);
@@ -129,7 +134,8 @@ trait ItemsVueSearchSelect
             DB::raw("'".Auth::user()->tenant->base_currency."' as currency"),
             DB::raw("'' as description"),
             DB::raw('0 as billing_rate'),
-            DB::raw('\'inclusive\' as tax_method')
+            DB::raw('\'inclusive\' as tax_method'),
+            DB::raw('0 as inventory_tracking')
         );
         $aQuery->whereIn('type', ['asset', 'equity', 'expense']);
         $accounts = $aQuery->get();
@@ -189,6 +195,7 @@ trait ItemsVueSearchSelect
                         'tax_method' => $item->tax_method,
                         'account_type' => @$item->account_type,
                         'image_url' => $item->image_url,
+                        'inventory_tracking' => $item->inventory_tracking
                     );
                 }
             }
@@ -216,7 +223,8 @@ trait ItemsVueSearchSelect
             DB::raw('selling_financial_account_code as financial_account_code'),
             DB::raw('selling_rate as rate'),
             DB::raw('if (selling_tax_inclusive, \'inclusive\', \'exclusive\') as tax_method'),
-            'image_url'
+            'image_url',
+            'inventory_tracking'
 
         );
         $query->whereNotIn('type', ['cost_center']);
@@ -265,6 +273,7 @@ trait ItemsVueSearchSelect
                         'tax_method' => $item->tax_method,
                         'account_type' => @$item->account_type,
                         'image_url' => $item->image_url,
+                        'inventory_tracking' => $item->inventory_tracking
                     );
                 }
             }
@@ -365,7 +374,8 @@ trait ItemsVueSearchSelect
             DB::raw('selling_rate'),
             DB::raw('if (selling_tax_inclusive, \'inclusive\', \'exclusive\') as tax_method'),
             'image_url',
-            'image_path'
+            'image_path',
+            'inventory_tracking'
         );
         $query->whereNotIn('type', ['cost_center']);
         $query->whereNotIn('status', ['deactivated']);
@@ -458,6 +468,7 @@ trait ItemsVueSearchSelect
                         'image_path' => $item->image_path,
                         'sales_taxes' => $item->sales_taxes,
                         'purchase_taxes' => $item->purchase_taxes,
+                        'inventory_tracking' => $item->inventory_tracking
                     ];
                 }
             }
