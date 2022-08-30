@@ -406,6 +406,8 @@ trait ItemsVueSearchSelect
             });
         }
 
+        $query->orderBy('name', 'asc');
+
         $items = $query->get();
 
         $items->load('sales_taxes');
