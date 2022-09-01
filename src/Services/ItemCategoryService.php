@@ -129,7 +129,7 @@ class ItemCategoryService
 
             $storage_path = '/items/categiory/' . date('Y-m');
 
-            $storage = Storage::disk('public_storage');
+            $storage = Storage::disk('public');
             if (!$storage->has($storage_path))
             {
                 $storage->makeDirectory($storage_path);
@@ -220,7 +220,7 @@ class ItemCategoryService
 
             $storage_path = '/items/categiory/' . date('Y-m');
 
-            $storage = Storage::disk('public_storage');
+            $storage = Storage::disk('public');
             if (!$storage->has($storage_path))
             {
                 $storage->makeDirectory($storage_path);
