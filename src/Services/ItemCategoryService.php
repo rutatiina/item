@@ -269,7 +269,7 @@ class ItemCategoryService
                         ],
                         [
                             'name' => $sub_category['name'],
-                            'description' => $sub_category['description']
+                            //'description' => $sub_category['description']
                         ]
                     );
                 }
