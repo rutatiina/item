@@ -436,6 +436,38 @@ class ItemController extends Controller
             'delete' => route('items.delete'),
             'activate' => route('items.activate'),
             'deactivate' => route('items.deactivate'),
+            'update_many' => route('items.update_many'),
         ];
+    }
+
+    public function updateMany(Request $request)
+    {
+        $status = true;
+
+        switch ($request->action)
+        {
+            case 'activate':
+                Item::whereIn('id', $request->ids)->update(['status' => 'active']);
+                $messages = [count($request->ids) . ' Item(s) activated.'];
+                break;
+            case 'deactivate':
+                Item::whereIn('id', $request->ids)->update(['status' => 'deactivated']);
+                $messages = [count($request->ids) . ' Item(s) deactivated.'];
+                break;
+            case 'track-inventory':
+                Item::whereIn('id', $request->ids)->update(['inventory_tracking' => 1]);
+                $messages = [count($request->ids) . ' Item(s) inventory tracking activated.'];
+                break;
+            default:
+                $status = false;
+                $messages = ['Oops: Unknown action : '.$request->action];
+        }
+
+        $response = [
+            'status' => $status,
+            'messages' => $messages
+        ];
+
+        return json_encode($response);
     }
 }

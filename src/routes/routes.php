@@ -21,6 +21,7 @@ Route::group(['middleware' => ['web', 'auth', 'tenant']], function() {
 		Route::post('vue-pos', [ItemController::class, 'vuePos']);
 		Route::get('categorizations', [ItemController::class, 'categorizations']);
 		Route::post('import', 'Rutatiina\Item\Http\Controllers\ItemController@import')->name('items.import');
+		Route::patch('update-many', 'Rutatiina\Item\Http\Controllers\ItemController@updateMany')->name('items.update_many');
 		Route::patch('deactivate', 'Rutatiina\Item\Http\Controllers\ItemController@deactivate')->name('items.deactivate');
         Route::patch('activate', 'Rutatiina\Item\Http\Controllers\ItemController@activate')->name('items.activate');
 		Route::delete('delete', 'Rutatiina\Item\Http\Controllers\ItemController@delete')->name('items.delete');
