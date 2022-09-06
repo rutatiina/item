@@ -35,7 +35,6 @@ trait ItemsVueSearchSelect
         $query->whereNotIn('type', ['cost_center']);
         $query->whereNotIn('status', ['deactivated']);
         $query->orderBy('name', 'asc');
-
         $items = $query->get();
 
         //print_r($items); exit;
@@ -105,7 +104,7 @@ trait ItemsVueSearchSelect
         return array_values($response);
     }
 
-    public function VueSearchSelectDataItemsPurchases()
+    public function VueSearchSelectDataItemsPurchases($request)
     {
         $query = Item::query();
         $query->select(
@@ -118,7 +117,98 @@ trait ItemsVueSearchSelect
             DB::raw('billing_rate'),
             DB::raw('if (billing_tax_inclusive, \'inclusive\', \'exclusive\') as tax_method'),
             'image_url',
-            'inventory_tracking'
+            'inventory_tracking',
+            DB::raw('billing_financial_account_code as debit_financial_account_code')
+        );
+        $query->whereNotIn('type', ['cost_center']);
+        $query->whereNotIn('status', ['deactivated']);
+        $query->orderBy('name', 'asc');
+        $items = $query->get();
+
+        //print_r($items); exit;
+
+        //Extract the categories
+        $types = [];
+
+        //print_r($items); exit;
+
+        if ($items->isEmpty()) {
+            return [];
+        }
+
+        foreach ($items as $item) {
+            $types[] = (empty($item->account_type)) ? $item->type : $item->account_type;
+        }
+
+        $types = array_unique($types);
+
+        $response = [];
+
+        $search_text = ($request->search_text == '-initiate-') ? '' : $request->search_text;
+
+        $response[] = [
+            'id' => 0,
+            'name' => $request->search_text,
+            'type' => '',
+            'currency' => '',
+            'description' => '',
+            //'financial_account_code' => $item->financial_account_code,
+            'rate' => 0,
+            'tax_method' => '',
+            'account_type' => '',
+            'image_url' => '',
+            'inventory_tracking' => 0,
+            'debit_financial_account_code' => 0
+        ];
+
+        foreach ($types as $type) {
+
+            //$response = [];
+
+            foreach ($items as $item) {
+
+                $checker = (empty($item->account_type)) ? $item->type : $item->account_type;
+
+                if ( preg_match('/'.$type.'/i', $checker)) {
+
+                    $response[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'type' => $item->type,
+                        'currency' => $item->currency,
+                        'description' => $item->description,
+                        //'financial_account_code' => $item->financial_account_code,
+                        'rate' => $item->selling_rate,
+                        'tax_method' => $item->tax_method,
+                        'account_type' => @$item->account_type,
+                        'image_url' => $item->image_url,
+                        'inventory_tracking' => $item->inventory_tracking,
+                        'debit_financial_account_code' => $item->debit_financial_account_code
+                    ];
+                }
+            }
+        }
+
+        //Delete the empty types
+
+        return array_values($response);
+    }
+
+    public function ___old___VueSearchSelectDataItemsPurchases()
+    {
+        $query = Item::query();
+        $query->select(
+            'id',
+            DB::raw('name'),
+            DB::raw("'account' as type"),
+            DB::raw('billing_currency as currency'),
+            DB::raw('billing_description as description'),
+            DB::raw('billing_financial_account_code as financial_account_code'),
+            DB::raw('billing_rate'),
+            DB::raw('if (billing_tax_inclusive, \'inclusive\', \'exclusive\') as tax_method'),
+            'image_url',
+            'inventory_tracking',
+            DB::raw('billing_financial_account_code as debit_financial_account_code')
         );
         $query->whereIn('type', ['cost_center']);
         $query->whereNotIn('status', ['deactivated']);
@@ -135,7 +225,8 @@ trait ItemsVueSearchSelect
             DB::raw("'' as description"),
             DB::raw('0 as billing_rate'),
             DB::raw('\'inclusive\' as tax_method'),
-            DB::raw('0 as inventory_tracking')
+            DB::raw('0 as inventory_tracking'),
+            DB::raw('code as debit_financial_account_code')
         );
         $aQuery->whereIn('type', ['asset', 'equity', 'expense']);
         $accounts = $aQuery->get();
@@ -195,7 +286,8 @@ trait ItemsVueSearchSelect
                         'tax_method' => $item->tax_method,
                         'account_type' => @$item->account_type,
                         'image_url' => $item->image_url,
-                        'inventory_tracking' => $item->inventory_tracking
+                        'inventory_tracking' => $item->inventory_tracking,
+                        'debit_financial_account_code' => $item->debit_financial_account_code
                     );
                 }
             }
