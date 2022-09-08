@@ -183,7 +183,7 @@ trait ItemsVueSearchSelect
                         'account_type' => @$item->account_type,
                         'image_url' => $item->image_url,
                         'inventory_tracking' => $item->inventory_tracking,
-                        'debit_financial_account_code' => $item->debit_financial_account_code
+                        'debit_financial_account_code' => intval($item->debit_financial_account_code)
                     ];
                 }
             }
