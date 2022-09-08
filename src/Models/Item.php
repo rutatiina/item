@@ -23,6 +23,8 @@ class Item extends Model
 
     protected $casts = [
         'inventory_tracking' => 'integer',
+        'selling_financial_account_code' => 'integer',
+        'billing_financial_account_code' => 'integer',
     ];
 
     /**
