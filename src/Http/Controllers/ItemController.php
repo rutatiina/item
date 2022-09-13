@@ -64,7 +64,7 @@ class ItemController extends Controller
             });
         }
 
-        $query->latest();
+        $query->orderBy('name', 'asc');
         $Items = $query->paginate($per_page);
 
         return [
