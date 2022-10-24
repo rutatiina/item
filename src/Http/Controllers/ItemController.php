@@ -2,26 +2,27 @@
 
 namespace Rutatiina\Item\Http\Controllers;
 
-use Illuminate\Support\Facades\Request as FacadesRequest;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Rutatiina\Item\Models\ItemCategory;
-use Rutatiina\Item\Models\ItemImage;
-use Rutatiina\Item\Services\ItemService;
 use Rutatiina\Tax\Models\Tax;
-use Rutatiina\FinancialAccounting\Models\Account;
+use Illuminate\Validation\Rule;
 use Rutatiina\Item\Models\Item;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use Rutatiina\Item\Models\ItemImage;
+use Illuminate\Support\Facades\Storage;
+use Rutatiina\Item\Models\ItemCategory;
+use Rutatiina\Item\Services\ItemService;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
+use Rutatiina\Item\Traits\ItemsVueSearchSelect;
+use Rutatiina\Item\Models\ItemUnitOfMeasurement;
+use Rutatiina\FinancialAccounting\Models\Account;
+use Illuminate\Support\Facades\Request as FacadesRequest;
 use Rutatiina\Globals\Services\Countries as ClassesCountries;
 use Rutatiina\Globals\Services\Currencies as ClassesCurrencies;
-use Rutatiina\Item\Traits\ItemsVueSearchSelect;
-use Yajra\DataTables\Facades\DataTables;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Str;
 
 class ItemController extends Controller
 {
@@ -48,7 +49,7 @@ class ItemController extends Controller
             return view('ui.limitless::layout_2-ltr-default.appVue');
         }
 
-        $Item = Item::paginate($per_page);
+        // $Item = Item::paginate($per_page);
 
         $query = Item::query();
 
@@ -152,12 +153,14 @@ class ItemController extends Controller
         $attributes['images_presently'] = (object) $attributesImages;
         $attributes['images'] = (object) $attributesImages;
         $attributes['images_deleted'] = [];
+        $attributes['components'] = [];
 
         return [
             'pageTitle' => 'Update Item',
             'urlPost' => '/items/' . $attributes['id'], #required
             'currencies' => ClassesCurrencies::en_INSelectOptions(),
             'countries' => ClassesCountries::ungroupedSelectOptions(),
+            'units_of_measurement' => ItemUnitOfMeasurement::select(['id', 'name'])->get(),
             'taxes' => $taxes,
             'accounts' => $accounts,
             'attributes' => $attributes
@@ -474,5 +477,35 @@ class ItemController extends Controller
         ];
 
         return json_encode($response);
+    }
+    
+    public function componentOptions(Request $request)
+    {
+        // $per_page = ($request->per_page) ? $request->per_page : 20;
+
+        if (!FacadesRequest::wantsJson())
+        {
+            return view('ui.limitless::layout_2-ltr-default.appVue');
+        }
+
+        $query = Item::query();
+        $query->select(['id', 'name']);
+
+        if ($request->search)
+        {
+            $query->where(function($q) use ($request) {
+                $q->where('type', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('name', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('sku', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('barcode', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('selling_description', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+                $q->orWhere('billing_description', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
+            });
+        }
+
+        $query->orderBy('name', 'asc');
+        $Items = $query->get();
+
+        return $Items;
     }
 }

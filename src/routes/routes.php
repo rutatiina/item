@@ -30,6 +30,7 @@ Route::group(['middleware' => ['web', 'auth', 'tenant']], function() {
 		Route::post('select2-data/purchases', 'Rutatiina\Item\Http\Controllers\Select2DataController@purchases')->name('items.select2-data.purchases');
 		Route::post('select2-data/inventory', 'Rutatiina\Item\Http\Controllers\Select2DataController@inventory')->name('items.select2-data.inventory');
 		Route::post('select2-data/accounts', 'Rutatiina\Item\Http\Controllers\Select2DataController@accounts')->name('items.select2-data.accounts');
+		Route::get('component-options', 'Rutatiina\Item\Http\Controllers\ItemController@componentOptions')->name('items.component.options');
 
 		//item category routes
         Route::post('categories/search', [ItemCartegoryController::class, 'search'])->name('items.categories.search');

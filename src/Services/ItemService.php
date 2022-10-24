@@ -2,22 +2,23 @@
 
 namespace Rutatiina\Item\Services;
 
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
+use Rutatiina\Tax\Models\Tax;
 use Illuminate\Validation\Rule;
+use Rutatiina\Item\Models\Item;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Rutatiina\Item\Models\ItemImage;
+use Illuminate\Support\Facades\Storage;
+use Rutatiina\Item\Models\ItemSalesTax;
+use Illuminate\Support\Facades\Validator;
+use Rutatiina\Item\Models\ItemPurchaseTax;
+use Rutatiina\Item\Models\ItemCategorization;
+use Rutatiina\Item\Models\ItemUnitOfMeasurement;
+use Rutatiina\FinancialAccounting\Models\Account;
 use Rutatiina\Globals\Services\Countries as ClassesCountries;
 use Rutatiina\Globals\Services\Currencies as ClassesCurrencies;
-use Rutatiina\FinancialAccounting\Models\Account;
-use Rutatiina\Item\Models\Item;
-use Rutatiina\Item\Models\ItemCategorization;
-use Rutatiina\Item\Models\ItemImage;
-use Rutatiina\Item\Models\ItemPurchaseTax;
-use Rutatiina\Item\Models\ItemSalesTax;
-use Rutatiina\Tax\Models\Tax;
 
 class ItemService
 {
@@ -48,12 +49,14 @@ class ItemService
         $attributes['sales_taxes'] = [];
         $attributes['purchase_taxes'] = [];
         $attributes['categorizations'] = [];
+        $attributes['components'] = [];
 
         return [
             'pageTitle' => 'Create Item',
             'urlPost' => '/items', #required
             'currencies' => ClassesCurrencies::en_IN(),
             'countries' => ClassesCountries::ungrouped(),
+            'units_of_measurement' => ItemUnitOfMeasurement::select(['id', 'name'])->get(),
             'taxes' => Tax::all(),
             'accounts' => Account::all(),
             'attributes' => $attributes,
@@ -195,7 +198,7 @@ class ItemService
             $Item->name = $request->name;
             $Item->sku = $request->sku;
             $Item->inventory_tracking = ($request->inventory_tracking == 'true') ? 1 : 0;
-            $Item->units = (is_numeric($request->units)) ? $request->units : 1;
+            $Item->units = 1; //(is_numeric($request->units)) ? $request->units : 1; //since components were introduced, there is no need for units
 
             $Item->selling_rate = floatval($request->selling_rate);
             $Item->selling_currency = $request->selling_currency;
@@ -369,7 +372,7 @@ class ItemService
             $item->name = $request->name;
             $item->sku = $request->sku;
             $item->inventory_tracking = ($request->inventory_tracking == 'true') ? 1 : 0;
-            $item->units = (is_numeric($request->units)) ? $request->units : 1;
+            $item->units = 1; //(is_numeric($request->units)) ? $request->units : 1; //since components were introduced, there is no need for units
 
             $item->selling_rate = floatval($request->selling_rate);
             $item->selling_currency = $request->selling_currency;
