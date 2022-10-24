@@ -68,7 +68,7 @@ class Item extends Model
         //->Default is always a string and thus does not auto fill the vue select
         $attributes['units'] = 1;
         $attributes['selling_financial_account_code'] = config('financial-accounting.sales_revenue_code'); //Sales revenue
-        $attributes['billing_financial_account_code'] = config('financial-accounting.cost_of_sales_code'); //Cost of Sales
+        $attributes['billing_financial_account_code'] = 130500; //Inventory //config('financial-accounting.cost_of_sales_code'); //Cost of Sales
 
         return $attributes;
     }
