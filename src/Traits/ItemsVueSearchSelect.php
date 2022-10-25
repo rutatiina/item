@@ -178,7 +178,7 @@ trait ItemsVueSearchSelect
                         'currency' => $item->currency,
                         'description' => $item->description,
                         //'financial_account_code' => $item->financial_account_code,
-                        'rate' => $item->selling_rate,
+                        'rate' => $item->billing_rate,
                         'tax_method' => $item->tax_method,
                         'account_type' => @$item->account_type,
                         'image_url' => $item->image_url,
