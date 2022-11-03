@@ -169,6 +169,8 @@ class ItemController extends Controller
 
     public function update($id, Request $request)
     {
+        // return $request;
+
         $store = ItemService::update($id, $request);
 
         if ($store)
@@ -489,7 +491,13 @@ class ItemController extends Controller
         }
 
         $query = Item::query();
-        $query->select(['id', 'name']);
+        $query->select(['id', 'name', 'unit_of_measurement_id']);
+        $query->has('unit_of_measurement');
+        
+        // $query->where(function($q) {
+        //     $q->whereNotNull('unit_of_measurement_symbol');
+        //     $q->Where('unit_of_measurement_symbol', '<>', '');
+        // });
 
         if ($request->search)
         {
@@ -504,7 +512,14 @@ class ItemController extends Controller
         }
 
         $query->orderBy('name', 'asc');
+        $query->with(['unit_of_measurement' => function($query) {
+            $query->select('id', 'name', 'symbol');
+        }]);
         $Items = $query->get();
+
+        $Items->each(function ($item, $key) {
+            $item->unit_of_measurement_name = Str::plural($item->unit_of_measurement->name);
+        });
 
         return $Items;
     }

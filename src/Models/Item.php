@@ -143,5 +143,10 @@ class Item extends Model
         return $this->hasMany(Inventory::class, 'item_id', 'id');
     }
 
+    public function unit_of_measurement()
+    {
+        return $this->hasOne('Rutatiina\Item\Models\ItemUnitOfMeasurement', 'id', 'unit_of_measurement_id');
+    }
+
 
 }

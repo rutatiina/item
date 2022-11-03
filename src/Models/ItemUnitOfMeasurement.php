@@ -27,7 +27,7 @@ class ItemUnitOfMeasurement extends Model
     {
         parent::boot();
 
-        // static::addGlobalScope(new TenantIdScope);
+        static::addGlobalScope(new TenantIdScope);
     }
 
 

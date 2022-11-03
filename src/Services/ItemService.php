@@ -190,6 +190,8 @@ class ItemService
                 $image_url = url('storage/' . $file_storage_name);
             }
 
+            $unitOfMeasurement = ItemUnitOfMeasurement::find($request->unit_of_measurement_id);
+
             $Item = new Item;
 
             $Item->tenant_id = $tenantId;
@@ -215,6 +217,12 @@ class ItemService
             $Item->billing_description = $request->billing_description;
             $Item->status = 'active';
 
+            if ($unitOfMeasurement)
+            {
+                $Item->unit_of_measurement_id = $unitOfMeasurement->id;
+                $Item->unit_of_measurement_symbol = $unitOfMeasurement->symbol;
+            }
+            
             if ($request->file('image'))
             {
                 $Item->image_name = $request->file('image')->getClientOriginalName();
@@ -364,6 +372,10 @@ class ItemService
                 ]);
             }
 
+            $unitOfMeasurement = ItemUnitOfMeasurement::find($request->unit_of_measurement_id);
+
+
+
             $item = Item::find($id);
 
             $item->updated_by = Auth::id();
@@ -387,6 +399,12 @@ class ItemService
             $item->billing_tax_code = (empty($request->billing_tax_code)) ? null : $request->billing_tax_code;
             $item->billing_tax_inclusive = $request->billing_tax_inclusive;
             $item->billing_description = $request->billing_description;
+
+            if ($unitOfMeasurement)
+            {
+                $item->unit_of_measurement_id = $unitOfMeasurement->id;
+                $item->unit_of_measurement_symbol = $unitOfMeasurement->symbol;
+            }
 
             if ($request->file('image'))
             {
