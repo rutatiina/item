@@ -26,9 +26,10 @@ class CreateRgItemComponentsTable extends Migration
 
             //>> table columns
             $table->unsignedBigInteger('item_id')->index();
-            $table->unsignedBigInteger('item_unit_of_measurement_id');
-            $table->string('item_unit_of_measurement_symbol', 50);
-            $table->unsignedDecimal('quantity', 20, 5)->default(0);
+            $table->unsignedBigInteger('component_item_id');
+            $table->unsignedBigInteger('component_unit_of_measurement_id');
+            $table->string('component_unit_of_measurement_symbol', 50);
+            $table->unsignedDecimal('component_quantity', 20, 5)->default(0);
 
         });
     }

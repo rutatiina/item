@@ -19,6 +19,7 @@ use Rutatiina\Item\Models\ItemUnitOfMeasurement;
 use Rutatiina\FinancialAccounting\Models\Account;
 use Rutatiina\Globals\Services\Countries as ClassesCountries;
 use Rutatiina\Globals\Services\Currencies as ClassesCurrencies;
+use Rutatiina\Item\Models\ItemComponent;
 
 class ItemService
 {
@@ -298,6 +299,21 @@ class ItemService
                 $Item->categorizations()->createMany($categorizations);
             }
 
+            //save the item components
+            if (is_array($request->components)) {
+                foreach ($request->components as $component) {
+                    $componentItem = Item::find($component['item']['id']);
+                    $itemComponentModel = new ItemComponent;
+                    $itemComponentModel->tenant_id = $tenantId;
+                    $itemComponentModel->item_id = $Item->id;
+                    $itemComponentModel->component_item_id = $componentItem->id;
+                    $itemComponentModel->component_unit_of_measurement_id = $componentItem->unit_of_measurement->id;
+                    $itemComponentModel->component_unit_of_measurement_symbol = $componentItem->unit_of_measurement->symbol;
+                    $itemComponentModel->component_quantity = $component['quantity'];
+                    $itemComponentModel->save();
+                }
+            }
+
 
             DB::connection('tenant')->commit();
 
@@ -521,6 +537,48 @@ class ItemService
             else
             {
                 ItemCategorization::where('item_id', $item->id)->delete();
+            }
+
+            //Update the components
+            if ($request->sales_taxes)
+            {
+                //delete records removed
+                $selectedComponents = collect($request->components)->pluck('item_id')->values()->filter()->all();
+
+                ItemComponent::where('item_id', $item->id)->whereNotIn('component_item_id', $selectedComponents)->delete();
+
+                foreach ($request->components as $component) {
+                    $componentItem = Item::find($component['item']['id']);
+
+                    //check if any component has been edited and soft-delete it
+                    $componentCheck = ItemComponent::where('item_id', $item->id)
+                        ->where('component_item_id', $componentItem->id)
+                        ->where(function($q) use ($component, $componentItem) {
+                            $q->where('component_unit_of_measurement_id', '!=', $componentItem->unit_of_measurement->i);
+                            $q->OrWhere('component_unit_of_measurement_symbol', '!=', $componentItem->unit_of_measurement->symbol);
+                            $q->OrWhere('component_quantity', '!=', $component['quantity']);
+                        })
+                        ->first();
+
+                    if ($componentCheck) $componentCheck->delete(); //if the component record was edited in any way, delete it
+
+                    ItemComponent::updateOrCreate(
+                        [
+                            'item_id' => $item->id, 
+                            'component_item_id' => $componentItem->id
+                        ],
+                        [
+                            'component_unit_of_measurement_id' => $componentItem->unit_of_measurement->id, 
+                            'component_unit_of_measurement_symbol' => $componentItem->unit_of_measurement->symbol,
+                            'component_quantity' => $component['quantity']
+                        ]
+                    );
+                }
+            }
+            else
+            {
+                //delete all sales taxes info since items is being edited and NO $request->sales_taxes info posted
+                ItemComponent::where('item_id', $item->id)->delete();
             }
 
             DB::connection('tenant')->commit();

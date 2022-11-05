@@ -499,8 +499,7 @@ class ItemController extends Controller
         //     $q->Where('unit_of_measurement_symbol', '<>', '');
         // });
 
-        if ($request->search)
-        {
+        if ($request->search) {
             $query->where(function($q) use ($request) {
                 $q->where('type', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
                 $q->orWhere('name', 'like', '%'.Str::replace(' ', '%', $request->search).'%');
