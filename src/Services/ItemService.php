@@ -540,7 +540,7 @@ class ItemService
             }
 
             //Update the components
-            if ($request->sales_taxes)
+            if ($request->components)
             {
                 //delete records removed
                 $selectedComponents = collect($request->components)->pluck('item_id')->values()->filter()->all();
@@ -564,6 +564,7 @@ class ItemService
 
                     ItemComponent::updateOrCreate(
                         [
+                            'tenant_id' => $tenantId,
                             'item_id' => $item->id, 
                             'component_item_id' => $componentItem->id
                         ],

@@ -16,6 +16,8 @@ class ItemComponent extends Model
 
     protected $primaryKey = 'id';
 
+    protected $guarded = ['id'];
+
     //protected $dates = ['deleted_at'];
 
     /**
@@ -28,6 +30,11 @@ class ItemComponent extends Model
         parent::boot();
 
         static::addGlobalScope(new TenantIdScope);
+    }
+
+    public function item()
+    {
+        return $this->belongsTo('Rutatiina\Item\Models\Item', 'component_item_id');
     }
 
 

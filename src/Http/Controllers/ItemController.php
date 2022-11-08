@@ -122,13 +122,14 @@ class ItemController extends Controller
         $taxes = Tax::all();
 
         $accounts = Account::all();
-        $accountsKeyById = $accounts->keyBy('id');
+        // $accountsKeyById = $accounts->keyBy('id');
 
         $item = Item::find($id);
 
         $item->load('sales_taxes');
         $item->load('purchase_taxes');
         $item->load('categorizations');
+        $item->load('components.item');
 
         $attributes = $item->toArray();
         $attributes['_method'] = 'PATCH';
@@ -153,7 +154,6 @@ class ItemController extends Controller
         $attributes['images_presently'] = (object) $attributesImages;
         $attributes['images'] = (object) $attributesImages;
         $attributes['images_deleted'] = [];
-        $attributes['components'] = [];
 
         return [
             'pageTitle' => 'Update Item',

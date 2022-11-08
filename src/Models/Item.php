@@ -148,5 +148,10 @@ class Item extends Model
         return $this->hasOne('Rutatiina\Item\Models\ItemUnitOfMeasurement', 'id', 'unit_of_measurement_id');
     }
 
+    public function components()
+    {
+        return $this->hasMany('Rutatiina\Item\Models\ItemComponent', 'item_id');
+    }
+
 
 }
