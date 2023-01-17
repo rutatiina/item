@@ -151,7 +151,7 @@ class Item extends Model
 
     public function components()
     {
-        return $this->hasMany('Rutatiina\Item\Models\ItemComponent', 'item_id');
+        return $this->hasMany('Rutatiina\Item\Models\ItemComponent', 'parent_item_id');
     }
 
 

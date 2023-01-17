@@ -34,7 +34,7 @@ class ItemComponent extends Model
 
     public function item()
     {
-        return $this->belongsTo('Rutatiina\Item\Models\Item', 'component_item_id');
+        return $this->belongsTo('Rutatiina\Item\Models\Item', 'item_id');
     }
 
 

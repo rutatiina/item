@@ -306,11 +306,11 @@ class ItemService
                     $componentItem = Item::find($component['item']['id']);
                     $itemComponentModel = new ItemComponent;
                     $itemComponentModel->tenant_id = $tenantId;
-                    $itemComponentModel->item_id = $Item->id;
-                    $itemComponentModel->component_item_id = $componentItem->id;
-                    $itemComponentModel->component_unit_of_measurement_id = $componentItem->unit_of_measurement->id;
-                    $itemComponentModel->component_unit_of_measurement_symbol = $componentItem->unit_of_measurement->symbol;
-                    $itemComponentModel->component_quantity = $component['quantity'];
+                    $itemComponentModel->parent_item_id = $Item->id;
+                    $itemComponentModel->item_id = $componentItem->id;
+                    $itemComponentModel->unit_of_measurement_id = $componentItem->unit_of_measurement->id;
+                    $itemComponentModel->unit_of_measurement_symbol = $componentItem->unit_of_measurement->symbol;
+                    $itemComponentModel->quantity = $component['quantity'];
                     $itemComponentModel->save();
                 }
             }
@@ -545,20 +545,20 @@ class ItemService
             if ($request->components)
             {
                 //delete records removed
-                $selectedComponents = collect($request->components)->pluck('item_id')->values()->filter()->all();
+                $selectedComponents = collect($request->components)->pluck('parent_item_id')->values()->filter()->all();
 
-                ItemComponent::where('item_id', $item->id)->whereNotIn('component_item_id', $selectedComponents)->delete();
+                ItemComponent::where('parent_item_id', $item->id)->whereNotIn('item_id', $selectedComponents)->delete();
 
                 foreach ($request->components as $component) {
                     $componentItem = Item::find($component['item']['id']);
 
                     //check if any component has been edited and soft-delete it
-                    $componentCheck = ItemComponent::where('item_id', $item->id)
-                        ->where('component_item_id', $componentItem->id)
+                    $componentCheck = ItemComponent::where('parent_item_id', $item->id)
+                        ->where('item_id', $componentItem->id)
                         ->where(function($q) use ($component, $componentItem) {
-                            $q->where('component_unit_of_measurement_id', '!=', $componentItem->unit_of_measurement->i);
-                            $q->OrWhere('component_unit_of_measurement_symbol', '!=', $componentItem->unit_of_measurement->symbol);
-                            $q->OrWhere('component_quantity', '!=', $component['quantity']);
+                            $q->where('unit_of_measurement_id', '!=', $componentItem->unit_of_measurement->i);
+                            $q->OrWhere('unit_of_measurement_symbol', '!=', $componentItem->unit_of_measurement->symbol);
+                            $q->OrWhere('quantity', '!=', $component['quantity']);
                         })
                         ->first();
 
@@ -567,13 +567,13 @@ class ItemService
                     ItemComponent::updateOrCreate(
                         [
                             'tenant_id' => $tenantId,
-                            'item_id' => $item->id, 
-                            'component_item_id' => $componentItem->id
+                            'parent_item_id' => $item->id, 
+                            'item_id' => $componentItem->id
                         ],
                         [
-                            'component_unit_of_measurement_id' => $componentItem->unit_of_measurement->id, 
-                            'component_unit_of_measurement_symbol' => $componentItem->unit_of_measurement->symbol,
-                            'component_quantity' => $component['quantity']
+                            'unit_of_measurement_id' => $componentItem->unit_of_measurement->id, 
+                            'unit_of_measurement_symbol' => $componentItem->unit_of_measurement->symbol,
+                            'quantity' => $component['quantity']
                         ]
                     );
                 }
@@ -581,7 +581,7 @@ class ItemService
             else
             {
                 //delete all sales taxes info since items is being edited and NO $request->sales_taxes info posted
-                ItemComponent::where('item_id', $item->id)->delete();
+                ItemComponent::where('parent_item_id', $item->id)->delete();
             }
 
             DB::connection('tenant')->commit();

@@ -129,7 +129,7 @@ class ItemController extends Controller
         $item->load('sales_taxes');
         $item->load('purchase_taxes');
         $item->load('categorizations');
-        $item->load('components.item');
+        $item->load('components.item.unit_of_measurement');
 
         $attributes = $item->toArray();
         $attributes['_method'] = 'PATCH';
@@ -493,6 +493,7 @@ class ItemController extends Controller
         $query = Item::query();
         $query->select(['id', 'name', 'unit_of_measurement_id']);
         $query->has('unit_of_measurement');
+        $query->with('unit_of_measurement');
         
         // $query->where(function($q) {
         //     $q->whereNotNull('unit_of_measurement_symbol');
