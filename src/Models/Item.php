@@ -130,12 +130,16 @@ class Item extends Model
 
     public function getInventoryAttribute()
     {
-        //return "{$this->first_name} {$this->last_name}";
         return Inventory::where('item_id', $this->id)
         ->whereIn( 'date', function($query) {
-            $query->selectRaw('MAX(date)')->where('item_id', $this->id)->from('rg_inventory')->groupBy('batch');
+            $query->selectRaw('MAX(date)')
+                ->where('item_id', $this->id)
+                ->whereNull('deleted_at') //ignore deleted columns
+                ->from((new Inventory)->getTable())
+                ->groupBy('batch');
         })
         ->orderBy('date', 'desc')
+        ->orderBy('id', 'desc')
         ->get();
     }
 
