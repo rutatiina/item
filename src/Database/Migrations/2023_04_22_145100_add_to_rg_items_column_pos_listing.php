@@ -14,7 +14,7 @@ class AddToRgItemsColumnPosListing extends Migration
     public function up()
     {
         Schema::connection('tenant')->table('rg_items', function (Blueprint $table) {
-            $table->unsignedTinyInteger('pos_listing')->after('units');
+            $table->unsignedTinyInteger('pos_listing')->default(1)->after('units');
         });
     }
 
