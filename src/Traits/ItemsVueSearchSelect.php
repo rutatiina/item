@@ -470,6 +470,7 @@ trait ItemsVueSearchSelect
             'inventory_tracking'
         );
         $query->whereNotIn('type', ['cost_center']);
+        $query->where('pos_listing', 1);
         $query->whereNotIn('status', ['deactivated']);
 
         if ($request->barcode)

@@ -51,6 +51,7 @@ class ItemService
         $attributes['purchase_taxes'] = [];
         $attributes['categorizations'] = [];
         $attributes['components'] = [];
+        $attributes['pos_listing'] = 1;
 
         return [
             'pageTitle' => 'Create Item',
@@ -201,6 +202,7 @@ class ItemService
             $Item->name = $request->name;
             $Item->sku = $request->sku;
             $Item->inventory_tracking = ($request->inventory_tracking == 'true') ? 1 : 0;
+            $Item->pos_listing = ($request->pos_listing == 'true') ? 1 : 0;
             $Item->made_at_sale = ($request->made_at_sale == 'true') ? 1 : 0;
             $Item->units = 1; //(is_numeric($request->units)) ? $request->units : 1; //since components were introduced, there is no need for units
 
@@ -401,6 +403,7 @@ class ItemService
             $item->name = $request->name;
             $item->sku = $request->sku;
             $item->inventory_tracking = ($request->inventory_tracking == 'true') ? 1 : 0;
+            $item->pos_listing = ($request->pos_listing == 'true') ? 1 : 0;
             $item->made_at_sale = ($request->made_at_sale == 'true') ? 1 : 0;
             $item->units = 1; //(is_numeric($request->units)) ? $request->units : 1; //since components were introduced, there is no need for units
 
