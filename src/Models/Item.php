@@ -67,6 +67,8 @@ class Item extends Model
 
         //add the relationships
         //->Default is always a string and thus does not auto fill the vue select
+        $attributes['selling_rate'] = 0; //the default of 0 has to be set to avoid vue / js throwing errors
+        $attributes['billing_rate'] = 0; //the default of 0 has to be set to avoid vue / js throwing errors
         $attributes['units'] = 1;
         $attributes['selling_financial_account_code'] = config('financial-accounting.sales_revenue_code'); //Sales revenue
         $attributes['billing_financial_account_code'] = 130500; //Inventory //config('financial-accounting.cost_of_sales_code'); //Cost of Sales
